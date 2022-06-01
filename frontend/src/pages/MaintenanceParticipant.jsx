@@ -49,7 +49,7 @@ function MaintenanceParticipant() {
         else if (user && user.recordType !== 'admin') {
             navigate('/judge')
         }
-        else{
+        else {
         }
     }, [user, navigate])
 
@@ -215,7 +215,7 @@ function MaintenanceParticipant() {
                                                             name='updateIsActive'
                                                             placeholder='Enter your username'
                                                             checked={data.isActive}
-                                                            onChange={onChangeCheckbox} />
+                                                            readOnly />
                                                     </td>
                                                     <td><button onClick={openRecord} id={data._id} name={data.name} className='btn btn-block'>View</button></td>
                                                 </tr>

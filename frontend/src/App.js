@@ -5,7 +5,6 @@ import EventResult from './pages/EventResult'
 import 'react-toastify/dist/ReactToastify.css'
 import Home from './pages/Home'
 import Judge from './pages/Judge'
-import JudgeScoring from './pages/JudgeScoring'
 import CreateEvent from './pages/CreateEvent'
 import LatestEvents from './pages/LatestEvents'
 import Login from './pages/Login'
@@ -85,7 +84,6 @@ function App() {
                   <Route path='/users' element={<MaintenanceUser />} />
                   <Route path='/register' element={<Register />} />
                   <Route path='/judge' element={<Judge />} />
-                  <Route path='/judge/event' element={<JudgeScoring />} />
                 </Routes>
               </Item>
             </Grid>

@@ -5,6 +5,7 @@ import Spinner from '../components/Spinner'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Modal from 'react-modal'
+import ModalUI from '@mui/material/Modal';
 import Select from 'react-select';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -18,6 +19,9 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Switch from '@mui/material/Switch';
+import TextField from '@mui/material/TextField';
+import Print from '@mui/icons-material/Print';
+import PreviewIcon from '@mui/icons-material/Preview';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -26,7 +30,6 @@ const Item = styled(Paper)(({ theme }) => ({
     textAlign: 'center',
     color: theme.palette.text.secondary,
 }));
-
 const customStyles = {
     content: {
         top: '50%',
@@ -37,30 +40,50 @@ const customStyles = {
         transform: 'translate(-50%, -50%)',
     },
 };
+const RecordType = [
+    { label: "Admin", value: 'admin' },
+    { label: "Judge", value: 'judge' }
+];
+
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 1000,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    overflow: 'auto',
+    boxShadow: 24,
+    pt: 2,
+    px: 4,
+    pb: 3,
+};
+const modalStyle = {
+    position: 'absolute',
+    top: '10%',
+    left: '10%',
+    overflow: 'auto',
+    height: '100%',
+    display: 'block'
+};
 
 Modal.setAppElement('#root')
 function Judge() {
-
-    const RecordType = [
-        { label: "Admin", value: 'admin' },
-        { label: "Judge", value: 'judge' }
-    ];
+    const [allEvents, setAllEvents] = useState([]);
+    const [selectedEvent, setSelectedEvent] = useState({});
+    const [allParticipants, setAllParticipants] = useState([]);
+    const [allJudge, setAllJudge] = useState([]);
+    const [allCriteria, setAllCriteria] = useState([]);
+    const [modal, setModal] = useState(false);
+    const [resultModal, setResultModal] = useState(false);
+    const [viewEvent, setViewEvent] = useState(false);
+    const [score, setScore] = useState([])
 
     const navigate = useNavigate()
     const dispatch = useDispatch()
     const { user } = useSelector((state) => state.auth)
     let token;
-
-    const [allEvents, setAllEvents] = useState([]);
-    const [selectedEvent, setSelectedEvent] = useState({});
-    const [allParticipants, setAllParticipants] = useState([]);
-    const [selectedParticipants, setSelectedParticipants] = useState({});
-    const [allJudge, setAllJudge] = useState({});
-    const [selectedJudge, setSelectedJudge] = useState({});
-    const [allCriteria, setAllCriteria] = useState([]);
-    const [selectedCriteria, setSelectedCriteria] = useState({});
-    const [modal, setModal] = useState(false);
-    let selectedUser = {};
 
     useEffect(() => {
         if (!user) {
@@ -88,49 +111,191 @@ function Judge() {
             axios.get(
                 'http://localhost:5000/api/participant/',
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                    if (!response) setAllParticipants("No Participant Records")
+                    if (!response) setAllParticipants("No User Records")
                     setAllParticipants(response.data);
                     console.log(response.data)
                 })
             axios.get(
                 'http://localhost:5000/api/criteria/',
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                    if (!response) setAllCriteria("No Criteria Records")
+                    if (!response) setAllCriteria("No User Records")
                     setAllCriteria(response.data);
                     console.log(response.data)
                 })
         }
     }, [])
 
-    //console.log(allEvents);
+    useEffect(() => {
+        // setViewEvent(Object.keys(selectedEvent).length === 0);
+        console.log(selectedEvent)
+        //const tempEvent = selectedEvent
+        // console.log(tempEvent)
+        console.log(viewEvent)
+        if (viewEvent) {
+            console.log('nakikita ako')
 
+            //@ GET CRITERIA WITH NAME
+            let CriteriaWithName = []
+            selectedEvent.criteria.forEach(response => {
+                const found = allCriteria.find(element => element._id === response.criteriaId);
+                found.percent = response.percent
+                CriteriaWithName.push(found)
+            });
+            console.log(CriteriaWithName)
+
+            //@ GET PARTICIPANTS WITH NAME
+            let ParticipantsWithName = []
+            selectedEvent.participant.forEach(response => {
+                const found = allParticipants.find(element => element._id === response.participantId);
+                ParticipantsWithName.push(found)
+            });
+            console.log(ParticipantsWithName)
+
+            //@ PARTICIPANT WITH CRITERIA AND SCORE
+            const criteriaWithScore = CriteriaWithName.map(criteria => {
+                return { ...criteria, score: 0 };
+            });
+            let participantList = ParticipantsWithName.map(participant => {
+                return { ...participant, criteria: criteriaWithScore };
+            });
+            //console.log(participantList)
+            setScore(participantList)
+            console.log(participantList)
+            console.log(score)
+        }
+    }, [selectedEvent,])
 
     //@UPDATE User RECORD -------------------------------------------
-
     //ONCHANGE FUNCTIONS
-
+    const onChangeScore = (event) => {
+        console.log(event.target.id)
+        console.log(event.target.name)
+    }
     //ONCLICK FUNCTIONS
     const onClickView = (event) => {
+        const found = allEvents.find(element => element._id === event.target.id);
+        setSelectedEvent(found)
+        //console.log(selectedEvent)
+        setViewEvent(true);
         setModal(true)
-        //console.log(event.target.id)
-        selectedUser = event.target.id;
+    }
 
-        let result = allEvents.find(({ _id }) => _id === selectedUser);
-        //console.log(result.description)
-        setSelectedEvent(result)
-        console.log(selectedEvent)
+    //@SHOW FORMS
+    const ShowEvent = () => {
+        return (
+            <>
+                <ModalUI
+                    open={modal}
+                    onClose={() => setModal(false)}
+                    aria-labelledby="parent-modal-title"
+                    aria-describedby="parent-modal-description"
+                    className={modalStyle}
+                >
+                    <Box sx={{ ...style }}>
+                        <section>
+                            <h1>
+                                Event Info:
+                            </h1>
+                            <TextField
+                                id="outlined-read-only-input"
+                                label="Event Name"
+                                defaultValue={selectedEvent.name}
+                                InputProps={{
+                                    readOnly: true,
+                                }} fullWidth margin="dense"
+                            />
 
-        let tempCriteriaList = {}
-        selectedEvent.criteria.foreach(criteria => {
-            const tempCriteria = allCriteria.map(criteria => {
-                if (criteria._id === criteria.criteriaId) {
-                    return { ...criteria, criteria };
-                }
-                return criteria;
-            });
-            tempCriteriaList.push(tempCriteria);
-        });
-        console.log(tempCriteriaList)
+                            <TextField
+                                id="outlined-read-only-input"
+                                label="Description"
+                                defaultValue={selectedEvent.description}
+                                InputProps={{
+                                    readOnly: true,
+                                }} fullWidth margin="dense"
+                            />
+
+                            <TextField
+                                id="outlined-read-only-input"
+                                label="Venue"
+                                defaultValue={selectedEvent.venue}
+                                InputProps={{
+                                    readOnly: true,
+                                }} fullWidth margin="dense"
+                            />
+
+                            <TextField
+                                id="outlined-read-only-input"
+                                label="Date and Time"
+                                defaultValue={selectedEvent.dateTime}
+                                InputProps={{
+                                    readOnly: true,
+                                }} fullWidth margin="dense"
+                            />
+                            <div>
+                                On Going Event?
+                                <Switch
+                                    checked={selectedEvent.IsOnGoing}
+                                    inputProps={{ 'aria-label': 'controlled' }}
+                                    name='IsOnGoing'
+                                    readOnly
+                                />
+                            </div>
+                        </section>
+
+                        <section>
+                            <h1>
+                                Participants:
+                            </h1>
+                            <TableContainer component={Paper}>
+                                <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="right">Participant Name</TableCell>
+                                            <TableCell align="right">Criteria</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+
+                                    <TableBody>
+                                        {score.map((row) => (
+                                            <TableRow
+                                                key={row._id}
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            >
+                                                <TableCell align="right">{row.name}</TableCell>
+                                                {row.criteria.map((criteria) => (
+                                                    <TableCell key={criteria._id} align="right">
+                                                        <TextField
+                                                            id={row._id}
+                                                            name={criteria._id}
+                                                            label={criteria.name}
+                                                            defaultValue={criteria.score}
+                                                            onChange={onChangeScore}
+                                                            type="number"
+                                                            inputProps={{ inputMode: 'numeric', pattern: '[0-100]*' }}
+                                                        />
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </section>
+                        <Button onClick={() => setModal(false)} variant="outlined" color="error">
+                            Close
+                        </Button>
+                    </Box>
+                </ModalUI>
+            </>
+        )
+    }
+
+
+    const showEventResult = () => {
+        return (
+            <>
+            </>
+        )
     }
 
     return (
@@ -140,7 +305,7 @@ function Judge() {
                     <Item>
                         <section className='heading'>
                             <h1>
-                                List of Events
+                                Latest Events
                             </h1>
                         </section>
                         <TableContainer component={Paper}>
@@ -172,10 +337,10 @@ function Judge() {
                                                 <input
                                                     type='checkbox'
                                                     className='form-control'
-                                                    id='isActive'
-                                                    name='updateIsActive'
-                                                    placeholder='Enter your username'
-                                                    checked={row.IsOnGoing} />
+                                                    id='isOnGoing'
+                                                    name='isOnGoing'
+                                                    checked={row.IsOnGoing}
+                                                    readOnly />
                                             </TableCell>
                                             <TableCell>
                                                 <Button id={row._id} variant="contained" onClick={onClickView}>View</Button>
@@ -189,36 +354,8 @@ function Judge() {
                 </Grid>
             </Grid>
 
-            <Modal
-                isOpen={modal}
-                onRequestClose={() => setModal(false)}
-                style={customStyles}
-            >
-                <section>
-                    <div>
-                        Event Name: {selectedEvent.name}
-                    </div>
-                    <div>
-                        Description: {selectedEvent.description}
-                    </div>
-                    <div>
-                        Description: {selectedEvent.venue}
-                    </div>
-                    <div>
-                        Date and Time: {selectedEvent.dateTime}
-                    </div>
-                    <div>
-                        On Going Event? <Switch
-                            checked={selectedEvent.isOnGoing}
-                            inputProps={{ 'aria-label': 'controlled' }}
-                        />
-                    </div>
-                </section>
 
-                <button onClick={() => setModal(false)} className='btn'>
-                    Cancel
-                </button>
-            </Modal>
+            {ShowEvent()}
         </>
     )
 }

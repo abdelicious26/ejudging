@@ -68,7 +68,7 @@ const modalStyle = {
 };
 
 Modal.setAppElement('#root')
-function MaintenanceUser() {
+function LatestEvents() {
     const [allEvents, setAllEvents] = useState([]);
     const [selectedEvent, setSelectedEvent] = useState({});
     const [allParticipants, setAllParticipants] = useState([]);
@@ -462,4 +462,4 @@ function MaintenanceUser() {
 }
 
 
-export default MaintenanceUser
+export default LatestEvents

@@ -262,7 +262,8 @@ function MaintenanceUser() {
                                                         id='isActive'
                                                         name='updateIsActive'
                                                         placeholder='Enter your username'
-                                                        checked={row.isActive} />
+                                                        checked={row.isActive}
+                                                        readOnly />
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     <button onClick={openRecord} id={row._id} name={row.name} className='btn'>View</button>

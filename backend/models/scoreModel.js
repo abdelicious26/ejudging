@@ -23,7 +23,7 @@ const ScoreSchema = new mongoose.Schema({
     },
     score: {
         type: Number,
-        min: 50,
+        min: 0,
         max: 100,
         require: true
     },

@@ -9,7 +9,10 @@ const app = express();
 
 connectDB();
 
-app.use(cors());
+app.use(cors({
+    origin: "*",
+    methods: ['GET','POST','PUT']
+}));
 app.use(express.json());
 
 const userRoutes = require('./routes/userRoutes');

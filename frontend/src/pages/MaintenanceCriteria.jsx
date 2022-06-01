@@ -212,7 +212,7 @@ function MaintenanceCriteria() {
                                                             name='updateIsActive'
                                                             placeholder='Enter your username'
                                                             checked={data.isActive}
-                                                            onChange={onChangeCheckbox} />
+                                                            readOnly />
                                                     </td>
                                                     <td><button onClick={openRecord} id={data._id} name={data.name} className='btn btn-block'>View</button></td>
                                                 </tr>

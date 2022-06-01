@@ -14,6 +14,7 @@ function Dashboard() {
     const [allEvents, setAllEvents] = useState([]);
     let token
     useEffect(() => {
+        console.log(process.env.SECRET)
         if (!user) {
             navigate('/login')
         }
