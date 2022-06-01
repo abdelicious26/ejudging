@@ -24,7 +24,7 @@ module.exports.create = asyncHandler(async (request, response) => {
 });
 
 module.exports.getAll = asyncHandler(async (request, response) => {
-    const events = await eventModel.find()
+    const events = await eventModel.find().sort({ dateTime: -1, name: 1, description: 1 })
     response.status(200).json(events)
 })
 
@@ -34,7 +34,7 @@ module.exports.update = asyncHandler(async (request, response) => {
         response.status(400)
         throw new Error('Event not found')
     }
-    const { name, description, venue, dateTime, isActive } = request.body
+    const { name, description, venue, dateTime, isActive, IsOnGoing } = request.body
 
     if (!name || !description || !venue || !dateTime) {
         response.status(400)
@@ -96,8 +96,12 @@ module.exports.updateCriteria = asyncHandler(async (request, response) => {
             }
 
             return eventModel.findByIdAndUpdate(request.params.id, {
-                $push: { criteria: { criteriaId: criteriaId } },
-                $push: { criteria: { percent: percent } }
+                $push: {
+                    criteria: {
+                        criteriaId: criteriaId,
+                        percent: percent,
+                    }
+                },
             })
         })
     response.status(200).json(addCriteria)

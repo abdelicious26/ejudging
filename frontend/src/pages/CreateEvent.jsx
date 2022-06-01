@@ -2,7 +2,7 @@ import React from 'react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import Spinner from '../../components/Spinner/Spinner'
+import Spinner from '../components/Spinner'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Modal from 'react-modal';
@@ -35,7 +35,6 @@ import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
 import StepLabel from '@mui/material/StepLabel';
-import Sidebar from '../../components/Sidebar/Sidebar'
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -314,6 +313,7 @@ function CreateEvent() {
                             .then((save) => {
                                 toast.success('Criteria Saved')
                                 console.log('Criteria Saved')
+                                console.log(criteria)
                             })
                             .catch((error) => {
                                 console.log(error)
@@ -391,60 +391,48 @@ function CreateEvent() {
         if (page === 0) {
             return (
                 <div>
-                    <h1>
-                    </h1>
-                    <div className=''>
-                        <InputLabel>Event Name</InputLabel>
-                        <TextField
-                            type='string'
-                            id='name'
-                            name='name'
-                            fullWidth
-                            value={name}
-                            onChange={onChange}
+                    <InputLabel>Event Name</InputLabel>
+                    <TextField
+                        type='string'
+                        id='name'
+                        name='name'
+                        fullWidth
+                        value={name}
+                        onChange={onChange}
+                        required
+                    />
+                    <InputLabel>Description</InputLabel>
+                    <TextField
+                        variant='outlined'
+                        type='string'
+                        id='description'
+                        name='description'
+                        fullWidth
+                        value={description}
+                        onChange={onChange}
+                    />
+                    <InputLabel>Venue</InputLabel>
+                    <TextField
+                        type='string'
+                        id='venue'
+                        name='venue'
+                        value={venue}
+                        fullWidth
+                        onChange={onChange}
+                        variant="outlined"
+                        required
+                    />
+                    <InputLabel>Date and Time</InputLabel>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <DateTimePicker
+                            renderInput={(props) => <TextField {...props} />}
+                            value={dateTime}
                             required
+                            onChange={(newValue) => {
+                                setDateTime(newValue);
+                            }}
                         />
-                    </div>
-                    <div className=''>
-                        <InputLabel>Description</InputLabel>
-                        <TextField
-                            variant='outlined'
-                            type='string'
-                            id='description'
-                            name='description'
-                            fullWidth
-                            value={description}
-                            onChange={onChange}
-                        />
-                    </div>
-
-                    <div className=''>
-                        <InputLabel>Venue</InputLabel>
-                        <TextField
-                            type='string'
-                            id='venue'
-                            name='venue'
-                            value={venue}
-                            fullWidth
-                            onChange={onChange}
-                            variant="outlined"
-                            required
-                        />
-                    </div>
-
-                    <div className=''>
-                        <InputLabel>Date and Time</InputLabel>
-                        <LocalizationProvider dateAdapter={AdapterDateFns}>
-                            <DateTimePicker
-                                renderInput={(props) => <TextField {...props} />}
-                                value={dateTime}
-                                required
-                                onChange={(newValue) => {
-                                    setDateTime(newValue);
-                                }}
-                            />
-                        </LocalizationProvider>
-                    </div>
+                    </LocalizationProvider>
                 </div>
             )
         }
@@ -625,7 +613,6 @@ function CreateEvent() {
 
     return (
         <>
-            <Sidebar />
             <CssBaseline />
             {/* <button onClick={temporaryFunction} className='btn btn-block'>
                 console log

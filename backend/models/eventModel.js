@@ -40,7 +40,7 @@ const eventSchema = new mongoose.Schema({
         },
         percent: {
             type: Number,
-            required: [true, "Percent is required"],        
+            required: [true, "Percent is required"],
             min: 5,
             max: 100
         },
@@ -59,7 +59,7 @@ const eventSchema = new mongoose.Schema({
             ref: 'Participant'
         }
     }],
-    
+
 }, {
     timestamps: true,
 })

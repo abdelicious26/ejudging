@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import Spinner from '../../components/Spinner/Spinner'
+import Spinner from '../components/Spinner'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Modal from 'react-modal'
@@ -232,49 +232,7 @@ function MaintenanceUser() {
                                     Add New
                                 </button>
                             </section>
-                            {/* <table>
-                                <thead>
-                                    <tr>
-                                        <th>First Name</th>
-                                        <th>Last Name</th>
-                                        <th>Username</th>
-                                        <th>Record Type</th>
-                                        <th>Active?</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {
-                                        allUsers.map(data => {
-                                            return (
-                                                <tr key={data._id}>
-                                                    <td>{data.firstName}</td>
-                                                    <td>{data.lastName}</td>
-                                                    <td>{data.username}</td>
-                                                    <td>{data.recordType}</td>
-                                                    <td>
-                                                        <input
-                                                            type='checkbox'
-                                                            className='form-control'
-                                                            id='isActive'
-                                                            name='updateIsActive'
-                                                            placeholder='Enter your username'
-                                                            checked={data.isActive}
-                                                            onChange={onChangeCheckbox} />
-                                                    </td>
-                                                    <td>
-                                                        <button onClick={openRecord} id={data._id} name={data.name} className='btn'>View</button>
-                                                        <button className='btn' onClick={() => setResetModal(true)}>
-                                                            Reset Password
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })
-                                    }
-                                </tbody>
-                            </table>
- */}
+
                             <TableContainer component={Paper}>
                                 <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                     <TableHead>
@@ -282,7 +240,7 @@ function MaintenanceUser() {
                                             <TableCell align="right">First Name</TableCell>
                                             <TableCell align="right">Last Name</TableCell>
                                             <TableCell align="right">Username</TableCell>
-                                            <TableCell align="right">RecordType</TableCell>
+                                            <TableCell align="right">User Type</TableCell>
                                             <TableCell align="right">Active?</TableCell>
                                             <TableCell align="center">Actions</TableCell>
                                         </TableRow>
@@ -293,10 +251,6 @@ function MaintenanceUser() {
                                                 key={row._id}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                {/* <TableCell component="th" scope="row">
-                                                    {row.name}
-                                                </TableCell> */}
-
                                                 <TableCell align="right">{row.firstName}</TableCell>
                                                 <TableCell align="right">{row.lastName}</TableCell>
                                                 <TableCell align="right">{row.username}</TableCell>
@@ -308,8 +262,7 @@ function MaintenanceUser() {
                                                         id='isActive'
                                                         name='updateIsActive'
                                                         placeholder='Enter your username'
-                                                        checked={row.isActive}
-                                                        onChange={onChangeCheckbox} />
+                                                        checked={row.isActive} />
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     <button onClick={openRecord} id={row._id} name={row.name} className='btn'>View</button>
@@ -372,7 +325,7 @@ function MaintenanceUser() {
                                                 />
                                             </div>
                                             <div className='form-group'>
-                                                <label>Record Type</label>
+                                                <label>User Type</label>
                                                 <Select id='updateRecordType'
                                                     name='updateRecordType'
                                                     options={RecordType}
@@ -458,7 +411,7 @@ function MaintenanceUser() {
                                     />
                                 </div>
                                 <div className='form-group'>
-                                    <label>Record Type</label>
+                                    <label>User Type</label>
                                     <Select id='newRecordType'
                                         name='newRecordType'
                                         options={RecordType}

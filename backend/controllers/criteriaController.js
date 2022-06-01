@@ -20,18 +20,12 @@ module.exports.create = asyncHandler(async (request, response) => {
 });
 
 module.exports.getAll = asyncHandler(async (request, response) => {
-    const criteria = await criteriaModel.find()
+    const criteria = await criteriaModel.find().sort({ name: 1, description: 1 })
     response.status(200).json(criteria)
 })
 
 module.exports.getAllActive = asyncHandler(async (request, response) => {
-    const criteria = await criteriaModel.find({isActive: true})
-    response.status(200).json(criteria)
-})
-
-
-module.exports.getAllActive = asyncHandler(async (request, response) => {
-    const criteria = await criteriaModel.find({isActive: true})
+    const criteria = await criteriaModel.find({ isActive: true }).sort({ name: 1, description: 1 })
     response.status(200).json(criteria)
 })
 
@@ -47,14 +41,14 @@ module.exports.update = asyncHandler(async (request, response) => {
         throw new Error('Criteria not found')
     }
     const { name, description, isActive } = request.body
-    
+
     if (!name) {
         response.status(400)
         throw new Error('Please add all fields')
     }
     const criteriaExist = await criteriaModel.find({ name: name })
     if (criteriaExist.length > 0) {
-        if(criteriaExist[0]._id.toString() != request.params.id){
+        if (criteriaExist[0]._id.toString() != request.params.id) {
             response.status(400)
             throw new Error('Criteria name already exist')
         }

@@ -1,7 +1,7 @@
-import { useState, useEffect, componentDidMount } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import Spinner from '../../components/Spinner/Spinner'
+import Spinner from '../components/Spinner'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Modal from 'react-modal'
@@ -19,7 +19,7 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 Modal.setAppElement('#root')
-function MaintenanceCriteria() {
+function MaintenanceParticipant() {
     const customStyles = {
         content: {
             top: '50%',
@@ -30,70 +30,80 @@ function MaintenanceCriteria() {
             transform: 'translate(-50%, -50%)',
         },
     };
-    const [allCriteria, setAllCriteria] = useState([]);
-    const [newCriteria, setNewCriteria] = useState({
+    const [allParticipants, setAllParticipants] = useState([]);
+    const [newParticipant, setNewParticipant] = useState({
         newName: '',
-        newDescription: '',
-        newPercent: '',
+        newDescription: ''
     });
     const [modal, setModal] = useState(false);
-    const { newName, newDescription } = newCriteria
+    const { newName, newDescription } = newParticipant
     const navigate = useNavigate()
     const dispatch = useDispatch()
+    let selectedParticipant = {};
     const { user } = useSelector((state) => state.auth)
-    const token = user.token
-    let selectedCriteria = {};
-    if (!user) {
-        navigate('/login')
-    }
+    let token = user.token
+    useEffect(() => {
+        if (!user) {
+            navigate('/login')
+        }
+        else if (user && user.recordType !== 'admin') {
+            navigate('/judge')
+        }
+        else{
+        }
+    }, [user, navigate])
+
     useEffect(() => {
         axios.get(
-            'http://localhost:5000/api/criteria/',
-            { headers: { "Authorization": `Bearer ${token}` } })
-            .then(response => {
-                if (!response) setAllCriteria("No Criteria Records")
-                setAllCriteria(response.data);
+            'http://localhost:5000/api/participant/',
+            { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                if (!response) setAllParticipants("No Participant Records")
+                setAllParticipants(response.data);
                 console.log(response.data)
             })
     }, [])
-    //@UPDATE CRITERIA RECORD -------------------------------------------
-    const [updateCriteria, setUpdateCriteria] = useState({
+
+    //console.log(allParticipants);
+
+
+    //@UPDATE PARTICIPANT RECORD -------------------------------------------
+    const [updateParticipant, setUpdateParticipant] = useState({
         updateId: '',
         updateName: '',
         updateDescription: '',
         updateIsActive: true
     });
-    const { updateId, updateName, updateDescription, updateIsActive } = updateCriteria
+    const { updateId, updateName, updateDescription, updateIsActive } = updateParticipant
 
     const openRecord = (event) => {
         //console.log(event.target.id)
-        selectedCriteria = event.target.id;
-        let result = allCriteria.find(({ _id }) => _id === selectedCriteria);
+        selectedParticipant = event.target.id;
+        let result = allParticipants.find(({ _id }) => _id === selectedParticipant);
         console.log(result.description)
-        setUpdateCriteria({
+        setUpdateParticipant({
             updateId: result._id,
             updateName: result.name,
             updateDescription: result.description,
             updateIsActive: result.isActive,
         })
-        console.log(updateCriteria)
+        console.log(updateParticipant)
     }
 
     //ONCHANGE FUNCTIONS
     const onChangeNew = (e) => {
-        setNewCriteria((prevState) => ({
+        setNewParticipant((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.value,
         }))
     }
     const onChangeUpdate = (e) => {
-        setUpdateCriteria((prevState) => ({
+        setUpdateParticipant((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.value,
         }))
     }
     const onChangeCheckbox = (e) => {
-        setUpdateCriteria((prevState) => ({
+        setUpdateParticipant((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.checked,
         }))
@@ -103,7 +113,7 @@ function MaintenanceCriteria() {
     //ONCLICK FUNCTIONS
     const onSubmitCreate = (e) => {
         e.preventDefault()
-        let URL = 'http://localhost:5000/api/criteria/'
+        let URL = 'http://localhost:5000/api/participant/'
         console.log(URL)
         console.log(newName)
         console.log(newDescription)
@@ -117,7 +127,7 @@ function MaintenanceCriteria() {
             .then((response) => {
                 console.log('success')
                 toast.success('Save Success');
-                setNewCriteria({
+                setNewParticipant({
                     newName: '',
                     newDescription: ''
                 })
@@ -128,9 +138,9 @@ function MaintenanceCriteria() {
     }
     const onSubmitUpdate = (e) => {
         e.preventDefault()
-        let URL = 'http://localhost:5000/api/criteria/' + updateId
+        let URL = 'http://localhost:5000/api/participant/' + updateId
         if (!updateId) {
-            return toast.error('Please select a criteria record');
+            return toast.error('Please select a participant record');
         }
         console.log(URL)
         axios.put(
@@ -144,13 +154,13 @@ function MaintenanceCriteria() {
             .then((response) => {
                 console.log('success')
                 toast.success('Update Success');
-                setUpdateCriteria({
+                setUpdateParticipant({
                     updateId: '',
                     updateName: '',
                     updateDescription: '',
                     updateIsActive: false
                 })
-                console.log(updateCriteria)
+                console.log(updateParticipant)
             })
             .catch((error) => {
                 toast.error(error.response.data);
@@ -169,14 +179,13 @@ function MaintenanceCriteria() {
 
     return (
         <>
-
             <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={2}>
                     <Grid item xs={7}>
                         <Item>
                             <section className='heading'>
                                 <h1>
-                                    List of Criteria
+                                    List of Participants
                                 </h1>
                                 <button onClick={() => setModal(true)} className='btn'>
                                     Add New
@@ -193,7 +202,7 @@ function MaintenanceCriteria() {
                                 </thead>
                                 <tbody>
                                     {
-                                        allCriteria.map(data => {
+                                        allParticipants.map(data => {
                                             return (
                                                 <tr key={data._id}>
                                                     <td>{data.name}</td>
@@ -222,20 +231,20 @@ function MaintenanceCriteria() {
                             <div>
                                 <section className='heading'>
                                     <h1>
-                                        <p>Criteria Detail</p>
+                                        <p>Participant Detail</p>
                                     </h1>
                                 </section>
                                 <div>
                                     <section className='form'>
                                         <form onSubmit={onSubmitUpdate}>
                                             <div className='form-group'>
-                                                <label>Criteria Name</label>
+                                                <label>Participant Name</label>
                                                 <input
                                                     type='string'
                                                     className='form-control'
                                                     id='updateName'
                                                     name='updateName'
-                                                    value={updateCriteria.updateName}
+                                                    value={updateParticipant.updateName}
                                                     onChange={onChangeUpdate}
                                                     required
                                                 />
@@ -247,7 +256,7 @@ function MaintenanceCriteria() {
                                                     className='form-control'
                                                     id='updateDescription'
                                                     name='updateDescription'
-                                                    value={updateCriteria.updateDescription}
+                                                    value={updateParticipant.updateDescription}
                                                     onChange={onChangeUpdate}
                                                 />
                                             </div>
@@ -259,7 +268,7 @@ function MaintenanceCriteria() {
                                                     id='updateIsActive'
                                                     name='updateIsActive'
                                                     placeholder='Enter your username'
-                                                    checked={updateCriteria.updateIsActive}
+                                                    checked={updateParticipant.updateIsActive}
                                                     onChange={onChangeCheckbox}
                                                 />
                                             </div>
@@ -286,20 +295,20 @@ function MaintenanceCriteria() {
                 <div>
                     <section className='heading'>
                         <h1>
-                            <p>Add new Criteria</p>
+                            <p>Add new Participant</p>
                         </h1>
                     </section>
                     <div>
                         <section className='form'>
                             <form onSubmit={onSubmitCreate}>
                                 <div className='form-group'>
-                                    <label>Criteria Name</label>
+                                    <label>Participant Name</label>
                                     <input
                                         type='string'
                                         className='form-control'
                                         id='newName'
                                         name='newName'
-                                        value={newCriteria.newName}
+                                        value={newParticipant.newName}
                                         onChange={onChangeNew}
                                         required
                                     />
@@ -311,7 +320,7 @@ function MaintenanceCriteria() {
                                         className='form-control'
                                         id='newDescription'
                                         name='newDescription'
-                                        value={newCriteria.newDescription}
+                                        value={newParticipant.newDescription}
                                         onChange={onChangeNew}
                                     />
                                 </div>
@@ -333,5 +342,5 @@ function MaintenanceCriteria() {
 }
 
 
-export default MaintenanceCriteria
+export default MaintenanceParticipant
 

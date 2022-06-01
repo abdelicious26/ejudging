@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import Spinner from '../../components/Spinner/Spinner'
+import Spinner from '../components/Spinner'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Modal from 'react-modal'
@@ -27,23 +27,30 @@ const Item = styled(Paper)(({ theme }) => ({
     color: theme.palette.text.secondary,
 }));
 
+const customStyles = {
+    content: {
+        top: '50%',
+        left: '50%',
+        right: 'auto',
+        bottom: 'auto',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)',
+    },
+};
 
 Modal.setAppElement('#root')
-function MaintenanceUser() {
-    const customStyles = {
-        content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            marginRight: '-50%',
-            transform: 'translate(-50%, -50%)',
-        },
-    };
+function Judge() {
+
     const RecordType = [
         { label: "Admin", value: 'admin' },
         { label: "Judge", value: 'judge' }
     ];
+
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
+    const { user } = useSelector((state) => state.auth)
+    let token;
+
     const [allEvents, setAllEvents] = useState([]);
     const [selectedEvent, setSelectedEvent] = useState({});
     const [allParticipants, setAllParticipants] = useState([]);
@@ -53,50 +60,46 @@ function MaintenanceUser() {
     const [allCriteria, setAllCriteria] = useState([]);
     const [selectedCriteria, setSelectedCriteria] = useState({});
     const [modal, setModal] = useState(false);
-
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
-    const { user } = useSelector((state) => state.auth)
-    const token = user.token
     let selectedUser = {};
-    if (!user) {
-        navigate('/login')
-    }
-    if (user && user.recordType !== 'admin') {
-        navigate('/judge')
-    }
+
     useEffect(() => {
-        axios.get(
-            'http://localhost:5000/api/events/',
-            { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                if (!response) setAllEvents("No Event Records")
-                setAllEvents(response.data);
-                console.log(response.data)
-            })
-
-        axios.get(
-            'http://localhost:5000/api/users/',
-            { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                if (!response) setAllJudge("No User Records")
-                setAllJudge(response.data);
-                console.log(response.data)
-            })
-        axios.get(
-            'http://localhost:5000/api/participant/',
-            { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                if (!response) setAllParticipants("No User Records")
-                setAllParticipants(response.data);
-                console.log(response.data)
-            })
-        axios.get(
-            'http://localhost:5000/api/criteria/',
-            { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                if (!response) setAllCriteria("No User Records")
-                setAllCriteria(response.data);
-                console.log(response.data)
-            })
-
-
+        if (!user) {
+            navigate('/login')
+        }
+        else if (user && user.recordType !== 'judge') {
+            navigate('/')
+        }
+        else {
+            token = user.token
+            axios.get(
+                'http://localhost:5000/api/judge/',
+                { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                    if (!response) setAllEvents("No Event Records")
+                    setAllEvents(response.data);
+                    console.log(response.data)
+                })
+            axios.get(
+                'http://localhost:5000/api/users/',
+                { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                    if (!response) setAllJudge("No User Records")
+                    setAllJudge(response.data);
+                    console.log(response.data)
+                })
+            axios.get(
+                'http://localhost:5000/api/participant/',
+                { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                    if (!response) setAllParticipants("No Participant Records")
+                    setAllParticipants(response.data);
+                    console.log(response.data)
+                })
+            axios.get(
+                'http://localhost:5000/api/criteria/',
+                { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                    if (!response) setAllCriteria("No Criteria Records")
+                    setAllCriteria(response.data);
+                    console.log(response.data)
+                })
+        }
     }, [])
 
     //console.log(allEvents);
@@ -121,7 +124,7 @@ function MaintenanceUser() {
         selectedEvent.criteria.foreach(criteria => {
             const tempCriteria = allCriteria.map(criteria => {
                 if (criteria._id === criteria.criteriaId) {
-                    return { ...criteria, criteria};
+                    return { ...criteria, criteria };
                 }
                 return criteria;
             });
@@ -137,7 +140,7 @@ function MaintenanceUser() {
                     <Item>
                         <section className='heading'>
                             <h1>
-                                Latest Events
+                                List of Events
                             </h1>
                         </section>
                         <TableContainer component={Paper}>
@@ -172,7 +175,7 @@ function MaintenanceUser() {
                                                     id='isActive'
                                                     name='updateIsActive'
                                                     placeholder='Enter your username'
-                                                    checked={row.isOnGoing} />
+                                                    checked={row.IsOnGoing} />
                                             </TableCell>
                                             <TableCell>
                                                 <Button id={row._id} variant="contained" onClick={onClickView}>View</Button>
@@ -221,4 +224,4 @@ function MaintenanceUser() {
 }
 
 
-export default MaintenanceUser
+export default Judge

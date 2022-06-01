@@ -4,7 +4,7 @@ const asyncHandler = require('express-async-handler')
 
 module.exports.getEvents = asyncHandler(async (request, response) => {
     console.log(request.user)
-    const event = await eventModel.find({ "judge.userId": request.user._id, isActive: true })
+    const event = await eventModel.find({ "judge.userId": request.user._id, isActive: true }).sort({ dateTime: 1, name: 1, description: 1 })
     response.status(200).json(event)
     // return eventModel.find({ "judge.userId": userId, isActive: true }).then(events => {
     //     return events

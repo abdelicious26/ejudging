@@ -3,8 +3,8 @@ import { FaSignInAlt } from 'react-icons/fa'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { login, reset } from '../../features/auth/authSlice'
-import Spinner from '../../components/Spinner/Spinner'
+import { login, reset } from '../features/auth/authSlice'
+import Spinner from '../components/Spinner'
 
 function Login() {
     console.log('Login')
@@ -22,6 +22,7 @@ function Login() {
         (state) => state.auth
     )
     useEffect(() => {
+        
         if (isError) {
             toast.error(message)
         }
@@ -56,9 +57,9 @@ function Login() {
         <>
             <section className='heading'>
                 <h1>
-                    <FaSignInAlt /> Login
+                    <FaSignInAlt /> eJudging
                 </h1>
-                <p>Login and start setting goals</p>
+                <p>Saint Francis of Assisi College System</p>
             </section>
 
             <section className='form'>

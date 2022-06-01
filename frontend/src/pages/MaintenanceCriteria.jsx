@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, componentDidMount } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import Spinner from '../../components/Spinner/Spinner'
+import Spinner from '../components/Spinner'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Modal from 'react-modal'
@@ -19,7 +19,7 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 Modal.setAppElement('#root')
-function MaintenanceParticipant() {
+function MaintenanceCriteria() {
     const customStyles = {
         content: {
             top: '50%',
@@ -30,81 +30,76 @@ function MaintenanceParticipant() {
             transform: 'translate(-50%, -50%)',
         },
     };
-    const [allParticipants, setAllParticipants] = useState([]);
-    const [newParticipant, setNewParticipant] = useState({
+    const [allCriteria, setAllCriteria] = useState([]);
+    const [newCriteria, setNewCriteria] = useState({
         newName: '',
-        newDescription: ''
+        newDescription: '',
+        newPercent: '',
     });
     const [modal, setModal] = useState(false);
-    const { newName, newDescription } = newParticipant
+    const { newName, newDescription } = newCriteria
     const navigate = useNavigate()
     const dispatch = useDispatch()
-    let selectedParticipant = {};
     const { user } = useSelector((state) => state.auth)
-    let token = ''
-    useEffect(() => {
-        if (!user) {
-            navigate('/login')
-        }
-        if (user && user.recordType !== 'admin') {
-            navigate('/judge')
-        }
-        else{
-            token = user.token
-        }
-    }, [user, navigate])
-
+    let token
+    let selectedCriteria = {};
+    if (!user) {
+        navigate('/login')
+    }
+    else if (user && user.recordType !== 'admin') {
+        navigate('/judge')
+    }
+    else {
+        token = user.token
+    }
     useEffect(() => {
         axios.get(
-            'http://localhost:5000/api/participant/',
-            { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                if (!response) setAllParticipants("No Participant Records")
-                setAllParticipants(response.data);
+            'http://localhost:5000/api/criteria/',
+            { headers: { "Authorization": `Bearer ${token}` } })
+            .then(response => {
+                if (!response) setAllCriteria("No Criteria Records")
+                setAllCriteria(response.data);
                 console.log(response.data)
             })
     }, [])
-
-    //console.log(allParticipants);
-
-
-    //@UPDATE PARTICIPANT RECORD -------------------------------------------
-    const [updateParticipant, setUpdateParticipant] = useState({
+    //@UPDATE CRITERIA RECORD -------------------------------------------
+    const [updateCriteria, setUpdateCriteria] = useState({
         updateId: '',
         updateName: '',
         updateDescription: '',
         updateIsActive: true
     });
-    const { updateId, updateName, updateDescription, updateIsActive } = updateParticipant
+    const { updateId, updateName, updateDescription, updateIsActive } = updateCriteria
 
     const openRecord = (event) => {
         //console.log(event.target.id)
-        selectedParticipant = event.target.id;
-        let result = allParticipants.find(({ _id }) => _id === selectedParticipant);
+        selectedCriteria = event.target.id;
+        let result = allCriteria.find(({ _id }) => _id === selectedCriteria);
         console.log(result.description)
-        setUpdateParticipant({
+        setUpdateCriteria({
             updateId: result._id,
             updateName: result.name,
             updateDescription: result.description,
             updateIsActive: result.isActive,
         })
-        console.log(updateParticipant)
+        console.log(updateCriteria)
     }
 
     //ONCHANGE FUNCTIONS
     const onChangeNew = (e) => {
-        setNewParticipant((prevState) => ({
+        setNewCriteria((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.value,
         }))
     }
     const onChangeUpdate = (e) => {
-        setUpdateParticipant((prevState) => ({
+        setUpdateCriteria((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.value,
         }))
     }
     const onChangeCheckbox = (e) => {
-        setUpdateParticipant((prevState) => ({
+        setUpdateCriteria((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.checked,
         }))
@@ -114,7 +109,7 @@ function MaintenanceParticipant() {
     //ONCLICK FUNCTIONS
     const onSubmitCreate = (e) => {
         e.preventDefault()
-        let URL = 'http://localhost:5000/api/participant/'
+        let URL = 'http://localhost:5000/api/criteria/'
         console.log(URL)
         console.log(newName)
         console.log(newDescription)
@@ -128,7 +123,7 @@ function MaintenanceParticipant() {
             .then((response) => {
                 console.log('success')
                 toast.success('Save Success');
-                setNewParticipant({
+                setNewCriteria({
                     newName: '',
                     newDescription: ''
                 })
@@ -139,9 +134,9 @@ function MaintenanceParticipant() {
     }
     const onSubmitUpdate = (e) => {
         e.preventDefault()
-        let URL = 'http://localhost:5000/api/participant/' + updateId
+        let URL = 'http://localhost:5000/api/criteria/' + updateId
         if (!updateId) {
-            return toast.error('Please select a participant record');
+            return toast.error('Please select a criteria record');
         }
         console.log(URL)
         axios.put(
@@ -155,13 +150,13 @@ function MaintenanceParticipant() {
             .then((response) => {
                 console.log('success')
                 toast.success('Update Success');
-                setUpdateParticipant({
+                setUpdateCriteria({
                     updateId: '',
                     updateName: '',
                     updateDescription: '',
                     updateIsActive: false
                 })
-                console.log(updateParticipant)
+                console.log(updateCriteria)
             })
             .catch((error) => {
                 toast.error(error.response.data);
@@ -180,13 +175,14 @@ function MaintenanceParticipant() {
 
     return (
         <>
+
             <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={2}>
                     <Grid item xs={7}>
                         <Item>
                             <section className='heading'>
                                 <h1>
-                                    List of Participants
+                                    List of Criteria
                                 </h1>
                                 <button onClick={() => setModal(true)} className='btn'>
                                     Add New
@@ -203,7 +199,7 @@ function MaintenanceParticipant() {
                                 </thead>
                                 <tbody>
                                     {
-                                        allParticipants.map(data => {
+                                        allCriteria.map(data => {
                                             return (
                                                 <tr key={data._id}>
                                                     <td>{data.name}</td>
@@ -232,20 +228,20 @@ function MaintenanceParticipant() {
                             <div>
                                 <section className='heading'>
                                     <h1>
-                                        <p>Participant Detail</p>
+                                        <p>Criteria Detail</p>
                                     </h1>
                                 </section>
                                 <div>
                                     <section className='form'>
                                         <form onSubmit={onSubmitUpdate}>
                                             <div className='form-group'>
-                                                <label>Participant Name</label>
+                                                <label>Criteria Name</label>
                                                 <input
                                                     type='string'
                                                     className='form-control'
                                                     id='updateName'
                                                     name='updateName'
-                                                    value={updateParticipant.updateName}
+                                                    value={updateCriteria.updateName}
                                                     onChange={onChangeUpdate}
                                                     required
                                                 />
@@ -257,7 +253,7 @@ function MaintenanceParticipant() {
                                                     className='form-control'
                                                     id='updateDescription'
                                                     name='updateDescription'
-                                                    value={updateParticipant.updateDescription}
+                                                    value={updateCriteria.updateDescription}
                                                     onChange={onChangeUpdate}
                                                 />
                                             </div>
@@ -269,7 +265,7 @@ function MaintenanceParticipant() {
                                                     id='updateIsActive'
                                                     name='updateIsActive'
                                                     placeholder='Enter your username'
-                                                    checked={updateParticipant.updateIsActive}
+                                                    checked={updateCriteria.updateIsActive}
                                                     onChange={onChangeCheckbox}
                                                 />
                                             </div>
@@ -296,20 +292,20 @@ function MaintenanceParticipant() {
                 <div>
                     <section className='heading'>
                         <h1>
-                            <p>Add new Participant</p>
+                            <p>Add new Criteria</p>
                         </h1>
                     </section>
                     <div>
                         <section className='form'>
                             <form onSubmit={onSubmitCreate}>
                                 <div className='form-group'>
-                                    <label>Participant Name</label>
+                                    <label>Criteria Name</label>
                                     <input
                                         type='string'
                                         className='form-control'
                                         id='newName'
                                         name='newName'
-                                        value={newParticipant.newName}
+                                        value={newCriteria.newName}
                                         onChange={onChangeNew}
                                         required
                                     />
@@ -321,7 +317,7 @@ function MaintenanceParticipant() {
                                         className='form-control'
                                         id='newDescription'
                                         name='newDescription'
-                                        value={newParticipant.newDescription}
+                                        value={newCriteria.newDescription}
                                         onChange={onChangeNew}
                                     />
                                 </div>
@@ -343,5 +339,5 @@ function MaintenanceParticipant() {
 }
 
 
-export default MaintenanceParticipant
+export default MaintenanceCriteria
 
