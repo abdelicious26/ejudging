@@ -79,6 +79,7 @@ function LatestEvents() {
     const [selectedCriteria, setSelectedCriteria] = useState([]);
     const [modal, setModal] = useState(false);
     const [resultModal, setResultModal] = useState(false);
+    const [eventResult, setEventResult] = useState([]);
 
     const navigate = useNavigate()
     const dispatch = useDispatch()
@@ -99,43 +100,31 @@ function LatestEvents() {
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllEvents("No Event Records")
                     setAllEvents(response.data);
-                    console.log(response.data)
                 })
             axios.get(
                 'http://localhost:5000/api/users/',
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllJudge("No User Records")
                     setAllJudge(response.data);
-                    console.log(response.data)
                 })
             axios.get(
                 'http://localhost:5000/api/participant/',
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllParticipants("No User Records")
                     setAllParticipants(response.data);
-                    console.log(response.data)
                 })
             axios.get(
                 'http://localhost:5000/api/criteria/',
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllCriteria("No User Records")
                     setAllCriteria(response.data);
-                    console.log(response.data)
                 })
         }
     }, [])
 
     useEffect(() => {
-        if (selectedEvent.length != 0) {
-            console.log('binasa agad')
-            console.log(selectedEvent)
-        }
-        if (!selectedEvent) {
-            console.log('walang pinili')
-        }
 
         const isEmpty = Object.keys(selectedEvent).length === 0;
-        console.log(isEmpty); // 👉️ true
         if (!isEmpty) {
             //@ GET CRITERIA WITH NAME
             let CriteriaWithName = []
@@ -145,7 +134,6 @@ function LatestEvents() {
                 CriteriaWithName.push(found)
             });
             setSelectedCriteria(CriteriaWithName)
-            console.log(selectedCriteria)
 
             //@ GET PARTICIPANTS WITH NAME
             let ParticipantsWithName = []
@@ -154,7 +142,6 @@ function LatestEvents() {
                 ParticipantsWithName.push(found)
             });
             setSelectedParticipants(ParticipantsWithName)
-            console.log(selectedParticipants)
 
             //@ GET JUDGE WITH NAME
             let JudgeWithName = []
@@ -163,39 +150,85 @@ function LatestEvents() {
                 JudgeWithName.push(found)
             });
             setSelectedJudge(JudgeWithName)
-            console.log(selectedJudge)
+            let AllEventScore = []
+            URL = 'http://localhost:5000/api/events/detail/result/' + selectedEvent._id
+            axios.get(
+                URL,
+                { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                    if (!response) return
+                    AllEventScore = response.data
+
+                    AllEventScore = AllEventScore.map(result => {
+                        const found = allCriteria.find(element => element._id === result.criteria);
+                        const percent = selectedEvent.criteria.find(element => element.criteriaId === found._id);
+                        return { ...result, criteriaName: found.name, percent: percent.percent }
+                    })
+
+                    AllEventScore = AllEventScore.map(result => {
+                        const found = allJudge.find(element => element._id === result.judge);
+                        return { ...result, judgeName: `${found.firstName} ${found.lastName}` }
+                    })
+
+                    let ParticipantsWithScore = []
+                    ParticipantsWithName.forEach(participant => {
+                        let participantRecord = []
+                        AllEventScore.forEach(data => {
+                            if (participant._id === data.participant) participantRecord.push(data)
+                        })
+
+                        let tempParticipantRecord = participant
+                        tempParticipantRecord.score = participantRecord
+                        ParticipantsWithScore.push(tempParticipantRecord)
+                    })
+
+                    ParticipantsWithScore = ParticipantsWithScore.map(participant => {
+                        console.log('Participant')
+                        let scorePerJudge = []
+                        JudgeWithName.forEach(judge => {
+                            let scoreObject = {}
+                            let scoreFilter = participant.score.filter(judgescore => {
+                                return judgescore.judge === judge._id
+                            })
+                            let tempTotal = 0
+                            scoreFilter.forEach(data => {
+                                tempTotal += data.score * data.percent / 100
+                            })
+
+                            scoreObject.judge = judge
+                            scoreObject.totalScore = tempTotal
+                            scorePerJudge.push(scoreObject)
+                        })
+                        return { ...participant, scoreJudge: scorePerJudge }
+                    })
+                    console.log(ParticipantsWithScore)
+                    setEventResult(ParticipantsWithScore)
+                    console.log(eventResult)
+                })
         }
     }, [selectedEvent])
-    //console.log(allEvents);
-
 
     //@UPDATE User RECORD -------------------------------------------
 
-    //ONCHANGE FUNCTIONS
-
+    //@ONCHANGE FUNCTIONS
     const onChangeCheckbox = (e) => {
         setSelectedEvent((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.checked,
         }))
-        console.log(e.target.checked)
     }
 
-    //ONCLICK FUNCTIONS
+    //@ONCLICK FUNCTIONS
     const onClickView = (event) => {
         setModal(true)
         const found = allEvents.find(element => element._id === event.target.id);
-        console.log(found)
         setSelectedEvent(found)
     }
 
     const onClickUpdateStatus = (event => {
-        console.log(selectedEvent)
         let URL = 'http://localhost:5000/api/events/detail/' + selectedEvent._id
         if (!selectedEvent._id) {
             return toast.error('Sorry. There was an error on your request.');
         }
-        console.log(URL)
         axios.put(
             URL,
             {
@@ -217,6 +250,64 @@ function LatestEvents() {
     })
 
     //@SHOW FORMS
+    const showEventResult = () => {
+        return (
+            <>
+                <ModalUI
+                    open={resultModal}
+                    onClose={() => setResultModal(false)}
+                    aria-labelledby="child-modal-title"
+                    aria-describedby="child-modal-description"
+                >
+                    <Box sx={{ ...style, width: 1000 }}>
+                        <h3>Event Name:</h3>
+                        <h2 id="child-modal-title">{selectedEvent.name}</h2>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="left">First Name</TableCell>
+                                        <TableCell align="left">Judge Scores</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {eventResult.map((row) => (
+                                        <TableRow
+                                            key={row._id}
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                        >
+
+                                            <TableCell align="left">{row.name}</TableCell>
+                                            {row.scoreJudge.map((scoreJudge) => (
+                                                <TableCell key={scoreJudge.judge._id} align="right">
+                                                    <TextField
+                                                        name={scoreJudge._id}
+                                                        label={`${scoreJudge.judge.firstName} ${scoreJudge.judge.lastName}`}
+                                                        value={scoreJudge.totalScore}
+                                                        type="number"
+                                                        inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                        InputLabelProps={{
+                                                            shrink: true,
+                                                        }}
+                                                        variant="outlined"
+                                                        readOnly
+                                                    />
+                                                </TableCell>
+                                            ))}
+
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <Button onClick={() => setResultModal(false)} variant='outlined' color='error'>Close Result</Button>
+                        <Button startIcon={<Print />} variant='contained' color='success'>Print Result</Button>
+                    </Box>
+                </ModalUI>
+            </>
+        )
+    }
+
     const ShowEvent = () => {
         return (
             <>
@@ -280,7 +371,7 @@ function LatestEvents() {
                             <Button onClick={onClickUpdateStatus} variant="contained" color="success">
                                 Update Event Status
                             </Button>
-                            <Button onClick={() => { setResultModal(true); console.log(resultModal) }} variant="outlined" color="success" startIcon={<PreviewIcon />}>
+                            <Button onClick={() => { setResultModal(true) }} variant="outlined" color="success" startIcon={<PreviewIcon />}>
                                 View Result
                             </Button>
                         </section>
@@ -293,9 +384,9 @@ function LatestEvents() {
                                 <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell align="right">Criteria Name</TableCell>
-                                            <TableCell align="right">Description</TableCell>
-                                            <TableCell align="right">Percent</TableCell>
+                                            <TableCell align="left">Criteria Name</TableCell>
+                                            <TableCell align="left">Description</TableCell>
+                                            <TableCell align="left">Percent</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -304,9 +395,9 @@ function LatestEvents() {
                                                 key={row._id}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                <TableCell align="right">{row.name}</TableCell>
-                                                <TableCell align="right">{row.description}</TableCell>
-                                                <TableCell align="right">{row.percent}</TableCell>
+                                                <TableCell align="left">{row.name}</TableCell>
+                                                <TableCell align="left">{row.description}</TableCell>
+                                                <TableCell align="left">{row.percent}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -322,8 +413,8 @@ function LatestEvents() {
                                 <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell align="right">First Name</TableCell>
-                                            <TableCell align="right">Last Name</TableCell>
+                                            <TableCell align="left">First Name</TableCell>
+                                            <TableCell align="left">Last Name</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -332,8 +423,8 @@ function LatestEvents() {
                                                 key={row._id}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                <TableCell align="right">{row.firstName}</TableCell>
-                                                <TableCell align="right">{row.lastName}</TableCell>
+                                                <TableCell align="left">{row.firstName}</TableCell>
+                                                <TableCell align="left">{row.lastName}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -349,8 +440,8 @@ function LatestEvents() {
                                 <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell align="right">Participant Name</TableCell>
-                                            <TableCell align="right">Description</TableCell>
+                                            <TableCell align="left">Participant Name</TableCell>
+                                            <TableCell align="left">Description</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -359,8 +450,8 @@ function LatestEvents() {
                                                 key={row._id}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                <TableCell align="right">{row.name}</TableCell>
-                                                <TableCell align="right">{row.description}</TableCell>
+                                                <TableCell align="left">{row.name}</TableCell>
+                                                <TableCell align="left">{row.description}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -370,31 +461,9 @@ function LatestEvents() {
                         <Button onClick={() => setModal(false)} variant="outlined" color="error">
                             Close
                         </Button>
-                        <ModalUI
-                            open={resultModal}
-                            onClose={() => setResultModal(false)}
-                            aria-labelledby="child-modal-title"
-                            aria-describedby="child-modal-description"
-                        >
-                            <Box sx={{ ...style, width: 1000 }}>
-                                <h3>
-                                    Event Name:
-                                </h3>
-                                <h2 id="child-modal-title">{selectedEvent.name}</h2>
-                                <Button onClick={() => setResultModal(false)} variant='outlined' color='error'>Close Result</Button>
-                                <Button startIcon={<Print />} variant='contained' color='success'>Print Result</Button>
-                            </Box>
-                        </ModalUI>
+                        {showEventResult()}
                     </Box>
                 </ModalUI>
-            </>
-        )
-    }
-
-
-    const showEventResult = () => {
-        return (
-            <>
             </>
         )
     }

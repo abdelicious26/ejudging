@@ -1,5 +1,7 @@
 const eventModel = require('../models/eventModel');
 const scoreModel = require('../models/scoreModel');
+const userModel = require('../models/userModel');
+const criteriaModel = require('../models/criteriaModel');
 const scoreController = require('../controllers/scoreController');
 const asyncHandler = require('express-async-handler')
 
