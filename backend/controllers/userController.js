@@ -4,12 +4,12 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 
 module.exports.getAll = asyncHandler(async (request, response) => {
-    const users = await userModel.find().sort( { firstName : 1, lastName: 1 } )
+    const users = await userModel.find().sort({ firstName: 1, lastName: 1 })
     response.status(200).json(users)
 })
 
 module.exports.getAllActiveJudge = asyncHandler(async (request, response) => {
-    const users = await userModel.find({ isActive: true, recordType: 'judge' }).sort( { firstName : 1, lastName: 1 } )
+    const users = await userModel.find({ isActive: true, recordType: 'judge' }).sort({ firstName: 1, lastName: 1 })
     response.status(200).json(users)
 })
 

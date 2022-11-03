@@ -1,11 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Header from './components/Header'
-import EventDetail from './pages/EventDetail'
-import EventResult from './pages/EventResult'
 import 'react-toastify/dist/ReactToastify.css'
-import Home from './pages/Home'
-import Judge from './pages/Judge'
-import CreateEvent from './pages/CreateEvent'
+import Judge from './pages/Judge/Judge'
+import CreateEvent from './pages/CreateEvent/CreateEvent'
 import LatestEvents from './pages/LatestEvents'
 import Login from './pages/Login'
 import { ToastContainer } from 'react-toastify'
@@ -18,7 +14,6 @@ import Dashboard from './pages/Dashboard'
 import Sidebar from './components/Sidebar'
 import { styled } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
-import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import { useSelector, useDispatch } from 'react-redux'
 import { useEffect } from 'react'

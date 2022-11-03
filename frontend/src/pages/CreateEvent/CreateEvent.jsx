@@ -1,40 +1,18 @@
-import React from 'react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
-import Spinner from '../components/Spinner'
+import { useSelector } from 'react-redux'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import Modal from 'react-modal';
-import DtPicker from 'react-calendar-datetime-picker'
 import 'react-calendar-datetime-picker/dist/index.css'
-import TextField from '@mui/material/TextField';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers';
-import { useTheme } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import Chip from '@mui/material/Chip';
-import { Input } from '@mui/material'
-import CssBaseline from '@mui/material/CssBaseline';
-import Container from '@mui/material/Container';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
-import { styled } from '@mui/material/styles';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepButton from '@mui/material/StepButton';
-import StepLabel from '@mui/material/StepLabel';
+import { useTheme, styled } from '@mui/material/styles';
+import {
+    TextField, Input, Select, Button, InputLabel, Box, OutlinedInput, MenuItem, FormControl, Chip,
+    StepLabel, Step, Stepper, Stack, Paper, Grid, CardContent, Card, CssBaseline
+} from '@mui/material';
+const backend = process.env.BACKEND;
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -66,10 +44,9 @@ function getStyles(name, selectedJudge, theme) {
 
 
 function CreateEvent() {
+    console.log(backend)
     const theme = useTheme();
-
     const navigate = useNavigate()
-    const dispatch = useDispatch()
     const { user } = useSelector((state) => state.auth)
     const token = user.token
     if (!user) {
@@ -90,11 +67,9 @@ function CreateEvent() {
     const [saveCriteria, setSaveCriteria] = useState([]);
     const [getCriteria, setGetCriteria] = useState([]);
     const [showCriteria, setShowCriteria] = useState([]);
-    const [saveCriteriaScore, setSaveCriteriaScore] = useState([]);
 
     const [page, setPage] = useState(0);
     const formTitles = ['Event Info', 'Criteria', 'Judges and Participants']
-
     useEffect(() => {
         axios.get(
             'http://localhost:5000/api/users/active',
@@ -131,7 +106,6 @@ function CreateEvent() {
                 });
                 setGetParticipant(tempParticipantList);
                 setShowParticipant(tempActiveParticipant);
-                //console.log(response.data)
             })
         axios.get(
             'http://localhost:5000/api/criteria/active',
@@ -149,7 +123,7 @@ function CreateEvent() {
                 setGetCriteria(tempCriteriaList);
                 setShowCriteria(tempActiveCriteria);
             })
-    }, [])
+    })
 
     //@ USE EFFECT CHECKING OF CRITERIA
     useEffect(() => {
@@ -169,15 +143,6 @@ function CreateEvent() {
             }
         })
         setSaveCriteria(tempCriteriaList)
-
-        console.log(tempCriteriaList)
-        console.log(saveCriteria.length)
-
-        // let criteria = {}
-        // selectedCriteria.forEach(element => {
-        //     console.log(element)
-        // })
-
     }, [selectedCriteria])
 
     //@ USE EFFECT CHECKING OF PARTICIPANT AND JUDGE
@@ -204,12 +169,6 @@ function CreateEvent() {
             }
         })
         setSaveParticipant(participantId)
-
-        console.log('current page: ' + page)
-        console.log('no. of page: ' + formTitles.length)
-        console.log('selected Criteria: ' + selectedCriteria.length)
-        console.log('selected Participant: ' + selectedParticipant.length)
-        console.log('selected Judges: ' + selectedJudge.length)
     }, [selectedParticipant, selectedJudge])
 
 
@@ -221,27 +180,24 @@ function CreateEvent() {
     const [dateTime, setDateTime] = useState(new Date());
 
     const { name, description, venue } = newEvent
-    const [judges, setJudges] = useState([]);
-    const [criteria, setCriteria] = useState([]);
-    const [participants, setParticipants] = useState([]);
 
     //@ONSUBMIT -----------------------------
     const onSubmit = (e) => {
         e.preventDefault()
         let isError = false;
-        if (name == '' || description == '' || venue == '' || dateTime == '') {
+        if (name === '' || description === '' || venue === '' || dateTime === '') {
             toast.error('Please fill out all the Event Info');
             isError = true;
         }
-        if (selectedCriteria.length == 0) {
+        if (selectedCriteria.length === 0) {
             toast.error('You did not select any Criteria ');
             isError = true;
         }
-        if (selectedJudge.length == 0) {
+        if (selectedJudge.length === 0) {
             toast.error('You did not select any Judges');
             isError = true;
         }
-        if (selectedParticipant.length == 0) {
+        if (selectedParticipant.length === 0) {
             toast.error('You did not select any Participants');
             isError = true;
         }
@@ -263,12 +219,9 @@ function CreateEvent() {
                         description: '',
                         venue: ''
                     })
-                    console.log(response.data._id)
-                    console.log(saveJudge)
 
                     //@SAVING JUDGE ON DATABASE
                     saveJudge.forEach(judge => {
-                        console.log(judge)
                         axios.put(
                             'http://localhost:5000/api/events/detail/judge/' + response.data._id,
                             {
@@ -277,7 +230,6 @@ function CreateEvent() {
                             { headers: { "Authorization": `Bearer ${token}` } })
                             .then((save) => {
                                 toast.success('Judge Saved')
-                                console.log('Judge Saved')
                             })
                             .catch((error) => {
                                 console.log(error)
@@ -294,7 +246,6 @@ function CreateEvent() {
                             { headers: { "Authorization": `Bearer ${token}` } })
                             .then((save) => {
                                 toast.success('Participants Saved')
-                                console.log('Participants Saved')
                             })
                             .catch((error) => {
                                 console.log(error)
@@ -312,8 +263,6 @@ function CreateEvent() {
                             { headers: { "Authorization": `Bearer ${token}` } })
                             .then((save) => {
                                 toast.success('Criteria Saved')
-                                console.log('Criteria Saved')
-                                console.log(criteria)
                             })
                             .catch((error) => {
                                 console.log(error)
@@ -321,12 +270,10 @@ function CreateEvent() {
                     })
 
                     setDateTime(new Date())
-                    console.log('success')
                     toast.success('New Event Created');
                     navigate('/')
                 })
                 .catch((error) => {
-                    console.log(error)
                     toast.error('Sorry, there was an error. Please make sure you fill out all the fields');
                 }
                 )
@@ -334,21 +281,17 @@ function CreateEvent() {
     }
 
     //@ONCHANGE -----------------------------
-    const temporaryFunction = () => {
-        console.log(saveCriteria)
-    }
-
-    const onChange = (e) => {
+    const onChange = (event) => {
         setNewEvent((prevState) => ({
             ...prevState,
-            [e.target.name]: e.target.value,
+            [event.target.name]: event.target.value,
         }))
     }
 
-    const onChangeScore = (e) => {
+    const onChangeScore = (event) => {
         const tempSaveCriteria = saveCriteria.map(criteria => {
-            if (criteria.name === e.target.name) {
-                return { ...criteria, percent: e.target.value };
+            if (criteria.name === event.target.name) {
+                return { ...criteria, percent: event.target.value };
             }
             return criteria;
         });
@@ -436,7 +379,6 @@ function CreateEvent() {
                 </div>
             )
         }
-
         else if (page === 1) {
             return (
                 <div>
@@ -614,11 +556,6 @@ function CreateEvent() {
     return (
         <>
             <CssBaseline />
-            {/* <button onClick={temporaryFunction} className='btn btn-block'>
-                console log
-            </button> */}
-
-
             <>
                 <section className='heading'>
                     <h1>
@@ -648,8 +585,8 @@ function CreateEvent() {
                                     </div>
                                     <Stack spacing={2} direction="row" className='form-group'>
 
-                                        <Button variant="outlined" className='btn-block' disabled={page == 0} onClick={() => { setPage((currentPage) => currentPage - 1) }} >Previous</Button>
-                                        <Button hidden={page == formTitles.length - 1} variant="outlined" className='btn-block' disabled={page == formTitles.length - 1} onClick={() => { setPage((currentPage) => currentPage + 1) }} >Next</Button>
+                                        <Button variant="outlined" className='btn-block' disabled={page === 0} onClick={() => { setPage((currentPage) => currentPage - 1) }} >Previous</Button>
+                                        <Button hidden={page === formTitles.length - 1} variant="outlined" className='btn-block' disabled={page === formTitles.length - 1} onClick={() => { setPage((currentPage) => currentPage + 1) }} >Next</Button>
                                         <Button hidden={true} variant="contained" type='submit' className='btn-block'>Save</Button>
                                     </Stack>
                                 </div>
