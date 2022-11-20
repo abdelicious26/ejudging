@@ -13,7 +13,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import HomeIcon from '@mui/icons-material/Home';
 import EventIcon from '@mui/icons-material/Event';
-import { useEffect } from 'react'
+import { useEffect } from 'react';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import IconButton from '@mui/material/IconButton';
@@ -40,9 +40,11 @@ function Sidebar() {
 
     const onLogout = () => {
         console.log('logging out')
-        dispatch(logout())
-        dispatch(reset())
-        navigate('/login')
+        if (window.confirm("Are you sure you want to logout?")) {
+            dispatch(logout());
+            dispatch(reset());
+            navigate('/login');
+        }
     }
 
     const displaySidebar = () => {
@@ -64,6 +66,7 @@ function Sidebar() {
                     >
                         <Toolbar />
                         <Divider />
+                        {/* SHOW LIST OF ITEMS */}
                         <List>
                             <ListItem disablePadding>
                                 <ListItemButton onClick={() => navigate('/judge')}>
@@ -82,6 +85,7 @@ function Sidebar() {
                                     <ListItemText> My Account</ListItemText>
                                 </ListItemButton>
                             </ListItem>
+                            <Divider />
                             <ListItem disablePadding>
                                 <ListItemButton onClick={onLogout}>
                                     <ListItemIcon>
@@ -132,6 +136,15 @@ function Sidebar() {
                                     <ListItemText > Latest Events</ListItemText>
                                 </ListItemButton>
                             </ListItem>
+                            <Divider />
+                            <ListItem disablePadding>
+                                <ListItemButton disabled>
+                                    <ListItemIcon>
+                                        <SettingsSuggestIcon />
+                                    </ListItemIcon>
+                                    <ListItemText> Maintenance</ListItemText>
+                                </ListItemButton>
+                            </ListItem>
                             <ListItem disablePadding>
                                 <ListItemButton onClick={() => navigate('/createevent')}>
                                     <ListItemIcon>
@@ -140,22 +153,11 @@ function Sidebar() {
                                     <ListItemText> Create Event</ListItemText>
                                 </ListItemButton>
                             </ListItem>
-                            <Divider />
-                            <ListItem disablePadding>
-                                <ListItemButton>
-                                    <ListItemIcon>
-                                        <SettingsSuggestIcon />
-                                    </ListItemIcon>
-                                    <ListItemText> Maintenance</ListItemText>
-                                </ListItemButton>
-                            </ListItem>
-
                             <ListItem disablePadding>
                                 <ListItemButton onClick={() => navigate('/users')}>
                                     <ListItemIcon>
-
                                     </ListItemIcon>
-                                    <ListItemText> Users</ListItemText>
+                                    <ListItemText disabled> Users</ListItemText>
                                 </ListItemButton>
                             </ListItem>
                             <ListItem disablePadding>
@@ -183,6 +185,7 @@ function Sidebar() {
                                     <ListItemText> My Account</ListItemText>
                                 </ListItemButton>
                             </ListItem>
+                            <Divider />
                             <ListItem disablePadding>
                                 <ListItemButton onClick={onLogout}>
                                     <ListItemIcon>

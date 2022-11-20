@@ -3,7 +3,7 @@ const dotenv = require('dotenv').config();
 const mongoose = require('mongoose');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
-const dbconnect = process.env.DBCONNECT;
+const dbconnect = process.env.DBCONNECTONLINE;
 const connectDB = require('./config/database');
 const app = express();
 

@@ -9,6 +9,14 @@ import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Button from '@mui/material/Button';
+import { set } from 'mongoose'
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -37,6 +45,7 @@ function MaintenanceCriteria() {
         newPercent: '',
     });
     const [modal, setModal] = useState(false);
+    const [viewModal, setViewModal] = useState(false);
     const { newName, newDescription } = newCriteria
     const navigate = useNavigate()
     const dispatch = useDispatch()
@@ -75,6 +84,7 @@ function MaintenanceCriteria() {
         //console.log(event.target.id)
         selectedCriteria = event.target.id;
         let result = allCriteria.find(({ _id }) => _id === selectedCriteria);
+        setViewModal(true);
         console.log(result.description)
         setUpdateCriteria({
             updateId: result._id,
@@ -127,6 +137,14 @@ function MaintenanceCriteria() {
                     newName: '',
                     newDescription: ''
                 })
+                axios.get(
+                    'http://localhost:5000/api/criteria/',
+                    { headers: { "Authorization": `Bearer ${token}` } })
+                    .then(response => {
+                        if (!response) setAllCriteria("No Criteria Records")
+                        setAllCriteria(response.data);
+                        console.log(response.data)
+                    })
             })
             .catch((error) => {
                 toast.error('Sorry, there was an error. the Name might be already existing.');
@@ -157,133 +175,86 @@ function MaintenanceCriteria() {
                     updateIsActive: false
                 })
                 console.log(updateCriteria)
+                axios.get(
+                    'http://localhost:5000/api/criteria/',
+                    { headers: { "Authorization": `Bearer ${token}` } })
+                    .then(response => {
+                        if (!response) setAllCriteria("No Criteria Records")
+                        setAllCriteria(response.data);
+                        console.log(response.data)
+                    })
+                setViewModal(false);
             })
             .catch((error) => {
                 toast.error(error.response.data);
             })
     }
 
-    let openModal = false;
-    const OpenModal = (e) => {
-        openModal = true;
-        console.log(openModal)
-    }
-    const CloseModal = (e) => {
-        openModal = false;
-        console.log(openModal)
-    }
-
     return (
         <>
-
             <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={2}>
-                    <Grid item xs={7}>
+                    <Grid item xs={12}>
                         <Item>
                             <section className='heading'>
                                 <h1>
                                     List of Criteria
                                 </h1>
-                                <button onClick={() => setModal(true)} className='btn'>
-                                    Add New
-                                </button>
+                                <Grid container justify="flex-end">
+                                    <Button variant="contained" color="success" size="large" onClick={() => setModal(true)}>
+                                        Add New
+                                    </Button>
+                                </Grid>
                             </section>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Description</th>
-                                        <th>Active?</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {
-                                        allCriteria.map(data => {
-                                            return (
-                                                <tr key={data._id}>
-                                                    <td>{data.name}</td>
-                                                    <td>{data.description}</td>
-                                                    <td>
-                                                        <input
-                                                            type='checkbox'
-                                                            className='form-control'
-                                                            id='isActive'
-                                                            name='updateIsActive'
-                                                            placeholder='Enter your username'
-                                                            checked={data.isActive}
-                                                            readOnly />
-                                                    </td>
-                                                    <td><button onClick={openRecord} id={data._id} name={data.name} className='btn btn-block'>View</button></td>
-                                                </tr>
-                                            )
-                                        })
-                                    }
-                                </tbody>
-                            </table>
-                        </Item>
-                    </Grid>
-                    <Grid item xs={5}>
-                        <Item>
-                            <div>
-                                <section className='heading'>
-                                    <h1>
-                                        <p>Criteria Detail</p>
-                                    </h1>
-                                </section>
-                                <div>
-                                    <section className='form'>
-                                        <form onSubmit={onSubmitUpdate}>
-                                            <div className='form-group'>
-                                                <label>Criteria Name</label>
-                                                <input
-                                                    type='string'
-                                                    className='form-control'
-                                                    id='updateName'
-                                                    name='updateName'
-                                                    value={updateCriteria.updateName}
-                                                    onChange={onChangeUpdate}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <label>Description</label>
-                                                <input
-                                                    type='string'
-                                                    className='form-control'
-                                                    id='updateDescription'
-                                                    name='updateDescription'
-                                                    value={updateCriteria.updateDescription}
-                                                    onChange={onChangeUpdate}
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <label>Is Active?</label>
-                                                <input
-                                                    type='checkbox'
-                                                    className='form-control'
-                                                    id='updateIsActive'
-                                                    name='updateIsActive'
-                                                    placeholder='Enter your username'
-                                                    checked={updateCriteria.updateIsActive}
-                                                    onChange={onChangeCheckbox}
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <button type='submit' className='btn btn-block'>
-                                                    Update
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </section>
-                                </div>
-                            </div>
+
+                            <TableContainer component={Paper}>
+                                <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="right">Name</TableCell>
+                                            <TableCell align="right">Description</TableCell>
+                                            <TableCell align="right">Type</TableCell>
+                                            <TableCell align="right">Active?</TableCell>
+                                            <TableCell align="right">Actions</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {allCriteria.map((row) => (
+                                            <TableRow
+                                                key={row._id}
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            >
+                                                <TableCell align="right">{row.name}</TableCell>
+                                                <TableCell align="right">{row.description}</TableCell>
+                                                <TableCell align="right">Category/Criteria</TableCell>
+                                                <TableCell align="right">
+                                                    <input
+                                                        type='checkbox'
+                                                        className='form-control'
+                                                        id='isActive'
+                                                        name='updateIsActive'
+                                                        placeholder='Enter your username'
+                                                        checked={row.isActive}
+                                                        readOnly />
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {/* <button onClick={openRecord} id={row._id} name={row.name} className='btn'>View</button> */}
+                                                    {/* <button className='btn' onClick={openRecord} id={row._id} name={row.name}>
+                                                        View
+                                                    </button> */}
+                                                    <Button variant="contained" onClick={openRecord} id={row._id} name={row.name}> View</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         </Item>
                     </Grid>
                 </Grid>
             </Box>
 
-
+            {/* NEW CRITERIA MODAL */}
             <Modal
                 isOpen={modal}
                 onRequestClose={() => setModal(false)}
@@ -292,7 +263,7 @@ function MaintenanceCriteria() {
                 <div>
                     <section className='heading'>
                         <h1>
-                            <p>Add new Criteria</p>
+                            <p>ADD NEW CRITERIA</p>
                         </h1>
                     </section>
                     <div>
@@ -322,17 +293,85 @@ function MaintenanceCriteria() {
                                     />
                                 </div>
                                 <div className='form-group'>
-                                    <button type='submit' className='btn btn-block'>
+                                    <Button variant="contained" color="success" type='submit' fullWidth='true'>
                                         Save
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
+                            <div className='form-group'>
+                                <Button variant="outlined" color="error" fullWidth='true' onClick={() => setModal(false)}>
+                                    Cancel
+                                </Button>
+                            </div>
                         </section>
                     </div>
                 </div>
-                <button onClick={() => setModal(false)} className='btn'>
-                    Cancel
-                </button>
+            </Modal>
+
+            {/* UPDATE CRITERIA MODAL */}
+            <Modal
+                isOpen={viewModal}
+                onRequestClose={() => setViewModal(false)}
+                style={customStyles}
+            >
+                <div>
+                    <section className='heading'>
+                        <h1>
+                            <p>CRITERIA DETAIL</p>
+                        </h1>
+                    </section>
+                    <div>
+                        <section className='form'>
+                            <form onSubmit={onSubmitUpdate}>
+                                <div className='form-group'>
+                                    <label>Criteria Name</label>
+                                    <input
+                                        type='string'
+                                        className='form-control'
+                                        id='updateName'
+                                        name='updateName'
+                                        value={updateCriteria.updateName}
+                                        onChange={onChangeUpdate}
+                                        required
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <label>Description</label>
+                                    <input
+                                        type='string'
+                                        className='form-control'
+                                        id='updateDescription'
+                                        name='updateDescription'
+                                        value={updateCriteria.updateDescription}
+                                        onChange={onChangeUpdate}
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <label>Is Active?</label>
+                                    <input
+                                        type='checkbox'
+                                        className='form-control'
+                                        id='updateIsActive'
+                                        name='updateIsActive'
+                                        placeholder='Enter your username'
+                                        checked={updateCriteria.updateIsActive}
+                                        onChange={onChangeCheckbox}
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <Button variant="contained" color="success" type='submit' fullWidth='true'>
+                                        Update
+                                    </Button>
+                                </div>
+                            </form>
+                            <div className='form-group'>
+                                <Button variant="outlined" color="error" fullWidth='true' onClick={() => setViewModal(false)}>
+                                    Cancel
+                                </Button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
             </Modal>
         </>
     )

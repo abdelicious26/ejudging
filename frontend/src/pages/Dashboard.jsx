@@ -33,7 +33,7 @@ function Dashboard() {
                     setAllEvents("No Event Records")
                     let temporaryList = [];
                     response.data.forEach(element => {
-                        let temporaryRecord ={};
+                        let temporaryRecord = {};
                         temporaryRecord.title = element.name
                         temporaryRecord.date = element.dateTime
                         console.log(temporaryRecord)

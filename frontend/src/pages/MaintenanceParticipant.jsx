@@ -9,6 +9,13 @@ import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Button from '@mui/material/Button';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -30,12 +37,15 @@ function MaintenanceParticipant() {
             transform: 'translate(-50%, -50%)',
         },
     };
+
+    //VARIABLES
     const [allParticipants, setAllParticipants] = useState([]);
     const [newParticipant, setNewParticipant] = useState({
         newName: '',
         newDescription: ''
     });
     const [modal, setModal] = useState(false);
+    const [viewModal, setViewModal] = useState(false);
     const { newName, newDescription } = newParticipant
     const navigate = useNavigate()
     const dispatch = useDispatch()
@@ -75,10 +85,12 @@ function MaintenanceParticipant() {
     });
     const { updateId, updateName, updateDescription, updateIsActive } = updateParticipant
 
+    //OPEN VIEW MODAL FUNCTION
     const openRecord = (event) => {
         //console.log(event.target.id)
         selectedParticipant = event.target.id;
         let result = allParticipants.find(({ _id }) => _id === selectedParticipant);
+        setViewModal(true);
         console.log(result.description)
         setUpdateParticipant({
             updateId: result._id,
@@ -111,6 +123,7 @@ function MaintenanceParticipant() {
     }
 
     //ONCLICK FUNCTIONS
+    //SAVE NEW PARTICIPANT BUTTON
     const onSubmitCreate = (e) => {
         e.preventDefault()
         let URL = 'http://localhost:5000/api/participant/'
@@ -131,11 +144,20 @@ function MaintenanceParticipant() {
                     newName: '',
                     newDescription: ''
                 })
+                // AUTO REFRESH TABLE
+                axios.get(
+                    'http://localhost:5000/api/participant/',
+                    { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                        if (!response) setAllParticipants("No Participant Records")
+                        setAllParticipants(response.data);
+                        console.log(response.data)
+                    })
             })
             .catch((error) => {
                 toast.error('Sorry, there was an error. the Name might be already existing.');
             })
     }
+    //SAVE UPDATE PARTICIPANT BUTTON
     const onSubmitUpdate = (e) => {
         e.preventDefault()
         let URL = 'http://localhost:5000/api/participant/' + updateId
@@ -161,6 +183,15 @@ function MaintenanceParticipant() {
                     updateIsActive: false
                 })
                 console.log(updateParticipant)
+                setViewModal(false);
+                // AUTO REFRESH TABLE
+                axios.get(
+                    'http://localhost:5000/api/participant/',
+                    { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                        if (!response) setAllParticipants("No Participant Records")
+                        setAllParticipants(response.data);
+                        console.log(response.data)
+                    })
             })
             .catch((error) => {
                 toast.error(error.response.data);
@@ -181,112 +212,64 @@ function MaintenanceParticipant() {
         <>
             <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={2}>
-                    <Grid item xs={7}>
+                    <Grid item xs={12}>
                         <Item>
                             <section className='heading'>
                                 <h1>
                                     List of Participants
                                 </h1>
-                                <button onClick={() => setModal(true)} className='btn'>
-                                    Add New
-                                </button>
+                                <Grid container justify="flex-end">
+                                    <Button variant="contained" color="success" size="large" onClick={() => setModal(true)}>
+                                        Add New
+                                    </Button>
+                                </Grid>
                             </section>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Description</th>
-                                        <th>Active?</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {
-                                        allParticipants.map(data => {
-                                            return (
-                                                <tr key={data._id}>
-                                                    <td>{data.name}</td>
-                                                    <td>{data.description}</td>
-                                                    <td>
-                                                        <input
-                                                            type='checkbox'
-                                                            className='form-control'
-                                                            id='isActive'
-                                                            name='updateIsActive'
-                                                            placeholder='Enter your username'
-                                                            checked={data.isActive}
-                                                            readOnly />
-                                                    </td>
-                                                    <td><button onClick={openRecord} id={data._id} name={data.name} className='btn btn-block'>View</button></td>
-                                                </tr>
-                                            )
-                                        })
-                                    }
-                                </tbody>
-                            </table>
-                        </Item>
-                    </Grid>
-                    <Grid item xs={5}>
-                        <Item>
-                            <div>
-                                <section className='heading'>
-                                    <h1>
-                                        <p>Participant Detail</p>
-                                    </h1>
-                                </section>
-                                <div>
-                                    <section className='form'>
-                                        <form onSubmit={onSubmitUpdate}>
-                                            <div className='form-group'>
-                                                <label>Participant Name</label>
-                                                <input
-                                                    type='string'
-                                                    className='form-control'
-                                                    id='updateName'
-                                                    name='updateName'
-                                                    value={updateParticipant.updateName}
-                                                    onChange={onChangeUpdate}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <label>Description</label>
-                                                <input
-                                                    type='string'
-                                                    className='form-control'
-                                                    id='updateDescription'
-                                                    name='updateDescription'
-                                                    value={updateParticipant.updateDescription}
-                                                    onChange={onChangeUpdate}
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <label>Is Active?</label>
-                                                <input
-                                                    type='checkbox'
-                                                    className='form-control'
-                                                    id='updateIsActive'
-                                                    name='updateIsActive'
-                                                    placeholder='Enter your username'
-                                                    checked={updateParticipant.updateIsActive}
-                                                    onChange={onChangeCheckbox}
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <button type='submit' className='btn btn-block'>
-                                                    Update
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </section>
-                                </div>
-                            </div>
+                            <TableContainer component={Paper}>
+                                <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="right">Name</TableCell>
+                                            <TableCell align="right">Description</TableCell>
+                                            <TableCell align="right">Active?</TableCell>
+                                            <TableCell align="right">Actions</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {allParticipants.map((row) => (
+                                            <TableRow
+                                                key={row._id}
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            >
+                                                <TableCell align="right">{row.name}</TableCell>
+                                                <TableCell align="right">{row.description}</TableCell>
+                                                <TableCell align="right">
+                                                    <input
+                                                        type='checkbox'
+                                                        className='form-control'
+                                                        id='isActive'
+                                                        name='updateIsActive'
+                                                        placeholder='Enter your username'
+                                                        checked={row.isActive}
+                                                        readOnly />
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {/* <button onClick={openRecord} id={row._id} name={row.name} className='btn'>View</button> */}
+                                                    {/* <button className='btn' onClick={openRecord} id={row._id} name={row.name}>
+                                                        View
+                                                    </button> */}
+                                                    <Button variant="contained" onClick={openRecord} id={row._id} name={row.name}> View</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         </Item>
                     </Grid>
                 </Grid>
             </Box>
 
-
+            {/* NEW PARTICIPANT MODAL */}
             <Modal
                 isOpen={modal}
                 onRequestClose={() => setModal(false)}
@@ -295,7 +278,7 @@ function MaintenanceParticipant() {
                 <div>
                     <section className='heading'>
                         <h1>
-                            <p>Add new Participant</p>
+                            <p>ADD NEW PARTICIPANT</p>
                         </h1>
                     </section>
                     <div>
@@ -325,17 +308,86 @@ function MaintenanceParticipant() {
                                     />
                                 </div>
                                 <div className='form-group'>
-                                    <button type='submit' className='btn btn-block'>
+                                    <Button variant="contained" color="success" type='submit' fullWidth='true'>
                                         Save
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
+                            <div className='form-group'>
+                                <Button variant="outlined" color="error" fullWidth='true' onClick={() => setModal(false)}>
+                                    Cancel
+                                </Button>
+                            </div>
                         </section>
                     </div>
                 </div>
-                <button onClick={() => setModal(false)} className='btn'>
-                    Cancel
-                </button>
+            </Modal>
+
+            {/* UPDATE PARTICIPANT MODAL */}
+            <Modal
+                isOpen={viewModal}
+                onRequestClose={() => setViewModal(false)}
+                style={customStyles}
+            >
+                <div>
+                    <section className='heading'>
+                        <h1>
+                            <p>PARTICIPANT DETAIL</p>
+                        </h1>
+                    </section>
+                    <div>
+                        <section className='form'>
+                            <form onSubmit={onSubmitUpdate}>
+                                <div className='form-group'>
+                                    <label>Participant Name</label>
+                                    <input
+                                        type='string'
+                                        className='form-control'
+                                        id='updateName'
+                                        name='updateName'
+                                        value={updateParticipant.updateName}
+                                        onChange={onChangeUpdate}
+                                        required
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <label>Description</label>
+                                    <input
+                                        type='string'
+                                        className='form-control'
+                                        id='updateDescription'
+                                        name='updateDescription'
+                                        value={updateParticipant.updateDescription}
+                                        onChange={onChangeUpdate}
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <label>Is Active?</label>
+                                    <input
+                                        type='checkbox'
+                                        className='form-control'
+                                        id='updateIsActive'
+                                        name='updateIsActive'
+                                        placeholder='Enter your username'
+                                        checked={updateParticipant.updateIsActive}
+                                        onChange={onChangeCheckbox}
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <Button variant="contained" color="success" type='submit' fullWidth='true'>
+                                        Update
+                                    </Button>
+                                </div>
+
+                            </form>
+                            <div className='form-group'>
+                                <Button variant="outlined" color="error" fullWidth='true' onClick={() => setViewModal(false)}>
+                                    Cancel
+                                </Button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
             </Modal>
         </>
     )

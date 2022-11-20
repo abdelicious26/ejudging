@@ -69,7 +69,13 @@ function CreateEvent() {
     const [showCriteria, setShowCriteria] = useState([]);
 
     const [page, setPage] = useState(0);
-    const formTitles = ['Event Info', 'Criteria', 'Judges and Participants']
+    const formTitles = ['Event Info', 'Ranking or Scoring', 'Judges and Participants']
+
+    const RecordType = [
+        { label: "Scoring", value: 'scoring' },
+        { label: "Ranking", value: 'ranking' }
+    ];
+
     useEffect(() => {
         axios.get(
             'http://localhost:5000/api/users/active',
@@ -365,12 +371,21 @@ function CreateEvent() {
                         variant="outlined"
                         required
                     />
+                    <InputLabel>Scoring Type</InputLabel>
+                    <Select id='newRecordType'
+                        name='newRecordType'
+                        options={RecordType}
+                        // onChange={onChangeDropdownNew}
+                        fullWidth
+                        // value={RecordType.filter(({ value }) => value === newUser.newRecordType)}
+                        required />
                     <InputLabel>Date and Time</InputLabel>
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DateTimePicker
                             renderInput={(props) => <TextField {...props} />}
                             value={dateTime}
                             required
+                            fullWidth
                             onChange={(newValue) => {
                                 setDateTime(newValue);
                             }}
@@ -386,6 +401,7 @@ function CreateEvent() {
                         <Grid item xs={12}>
                             <Item>
                                 <div>
+
                                     <FormControl sx={{ m: 1, width: 400 }}>
                                         <InputLabel id="demo-multiple-chip-label">Criteria</InputLabel>
                                         <Select

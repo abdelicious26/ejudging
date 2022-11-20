@@ -16,6 +16,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import Button from '@mui/material/Button';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -38,6 +39,7 @@ function MaintenanceUser() {
             transform: 'translate(-50%, -50%)',
         },
     };
+    
     const RecordType = [
         { label: "Admin", value: 'admin' },
         { label: "Judge", value: 'judge' }
@@ -57,8 +59,11 @@ function MaintenanceUser() {
         updateRecordType: '',
         updateIsActive: true
     });
+
+    //VARIABLES
     const [modal, setModal] = useState(false);
     const [resetModal, setResetModal] = useState(false);
+    const [viewModal, setViewModal] = useState(false);
     const { newFirstName, newLastName, newUsername, newRecordType } = newUser
     const { updateId, updateFirstName, updateLastName, updateUsername, updateRecordType, updateIsActive } = updateUser
 
@@ -91,6 +96,7 @@ function MaintenanceUser() {
         //console.log(event.target.id)
         selectedUser = event.target.id;
         let result = allUsers.find(({ _id }) => _id === selectedUser);
+        setViewModal(true);
         console.log(result.description)
         setUpdateUser({
             updateId: result._id,
@@ -139,6 +145,7 @@ function MaintenanceUser() {
     }
 
     //ONCLICK FUNCTIONS
+    //CREATE NEW USER BUTTON
     const onSubmitCreate = (e) => {
         e.preventDefault()
         let URL = 'http://localhost:5000/api/users/create'
@@ -146,6 +153,7 @@ function MaintenanceUser() {
         if (!newRecordType) {
             return toast.error('Please Select a Record Type');
         }
+        //SAVE NEW USER
         axios.post(
             URL,
             {
@@ -160,7 +168,7 @@ function MaintenanceUser() {
                 }
             })
             .then((response) => {
-                console.log('success')
+                console.log('success', response);
                 toast.success('Save Success');
                 setNewUser({
                     newFirstName: '',
@@ -168,12 +176,21 @@ function MaintenanceUser() {
                     newUsername: '',
                     newRecordType: ''
                 })
+                // AUTO REFRESH TABLE
+                axios.get(
+                    'http://localhost:5000/api/users/',
+                    { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                        if (!response) setAllUsers("No User Records")
+                        setAllUsers(response.data);
+                        console.log(response.data)
+                    })
             })
             .catch((error) => {
                 console.log(error)
                 toast.error('Sorry, there was an error. the username might be already existing.')
             })
     }
+    // UPDATE USER BUTTON
     const onSubmitUpdate = (e) => {
         e.preventDefault()
         let URL = 'http://localhost:5000/api/users/update/' + updateId
@@ -189,6 +206,7 @@ function MaintenanceUser() {
         console.log('username ' + updateUsername)
         console.log('recordtpye ' + updateRecordType)
         console.log('isactive ' + updateIsActive)
+        //SAVE UPDATE USER
         axios.put(
             URL,
             {
@@ -210,7 +228,16 @@ function MaintenanceUser() {
                     updateRecordType: '',
                     updateIsActive: false
                 })
-                console.log(updateUser)
+                console.log(updateUser);
+                setViewModal(false);
+                // AUTO REFRESH TABLE
+                axios.get(
+                    'http://localhost:5000/api/users/',
+                    { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                        if (!response) setAllUsers("No User Records")
+                        setAllUsers(response.data);
+                        console.log(response.data)
+                    })
             })
             .catch((error) => {
                 toast.error('Sorry, there was an error. the username might be already existing.')
@@ -222,15 +249,20 @@ function MaintenanceUser() {
         <>
             <Box sx={{ flexGrow: 1 }}>
                 <Grid container spacing={2}>
-                    <Grid item xs={7}>
+                    <Grid item xs={12}>
                         <Item>
                             <section className='heading'>
                                 <h1>
                                     List of Users
                                 </h1>
-                                <button onClick={() => setModal(true)} className='btn'>
+                                {/* <button onClick={() => setModal(true)} className='btn'>
                                     Add New
-                                </button>
+                                </button> */}
+                                <Grid container justify="flex-end">
+                                    <Button variant="contained" color="success" size="large" onClick={() => setModal(true)}>
+                                        Add New
+                                    </Button>
+                                </Grid>
                             </section>
 
                             <TableContainer component={Paper}>
@@ -265,11 +297,9 @@ function MaintenanceUser() {
                                                         checked={row.isActive}
                                                         readOnly />
                                                 </TableCell>
-                                                <TableCell align="right">
-                                                    <button onClick={openRecord} id={row._id} name={row.name} className='btn'>View</button>
-                                                    <button className='btn' onClick={() => setResetModal(true)}>
-                                                        Reset Password
-                                                    </button></TableCell>
+                                                <TableCell align="center">
+                                                    <Button variant="contained" onClick={openRecord} id={row._id} name={row.name}> View</Button>
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -278,89 +308,10 @@ function MaintenanceUser() {
 
                         </Item>
                     </Grid>
-                    <Grid item xs={5}>
-                        <Item>
-                            <div>
-                                <section className='heading'>
-                                    <h1>
-                                        <p>User Detail</p>
-                                    </h1>
-                                </section>
-                                <div>
-                                    <section className='form'>
-                                        <form onSubmit={onSubmitUpdate}>
-                                            <div className='form-group'>
-                                                <label>First Name</label>
-                                                <input
-                                                    type='text'
-                                                    className='form-control'
-                                                    id='updateFirstName'
-                                                    name='updateFirstName'
-                                                    value={updateUser.updateFirstName}
-                                                    onChange={onChangeUpdate}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <label>Last Name</label>
-                                                <input
-                                                    type='text'
-                                                    className='form-control'
-                                                    id='updateLastName'
-                                                    name='updateLastName'
-                                                    value={updateUser.updateLastName}
-                                                    onChange={onChangeUpdate}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <label>Username</label>
-                                                <input
-                                                    type='text'
-                                                    className='form-control'
-                                                    id='updateUsername'
-                                                    name='updateUsername'
-                                                    value={updateUser.updateUsername}
-                                                    onChange={onChangeUpdate}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <label>User Type</label>
-                                                <Select id='updateRecordType'
-                                                    name='updateRecordType'
-                                                    options={RecordType}
-                                                    onChange={onChangeDropdownUpdate}
-                                                    className='form-control'
-                                                    value={RecordType.filter(({ value }) => value === updateUser.updateRecordType)}
-                                                    required />
-                                            </div>
-                                            <div className='form-group'>
-                                                <label>Is Active?</label>
-                                                <input
-                                                    type='checkbox'
-                                                    className='form-control'
-                                                    id='updateIsActive'
-                                                    name='updateIsActive'
-                                                    placeholder='Enter your username'
-                                                    checked={updateUser.updateIsActive}
-                                                    onChange={onChangeCheckbox}
-                                                />
-                                            </div>
-                                            <div className='form-group'>
-                                                <button type='submit' className='btn btn-block'>
-                                                    Update
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </section>
-                                </div>
-                            </div>
-                        </Item>
-                    </Grid>
                 </Grid>
             </Box>
 
+            {/* ADD NEW USER MODAL */}
             <Modal
                 isOpen={modal}
                 onRequestClose={() => setModal(false)}
@@ -369,7 +320,7 @@ function MaintenanceUser() {
                 <div>
                     <section className='heading'>
                         <h1>
-                            <p>Add new User</p>
+                            <p>ADD NEW USER</p>
                         </h1>
                     </section>
                     <div>
@@ -422,19 +373,119 @@ function MaintenanceUser() {
                                         required />
                                 </div>
                                 <div className='form-group'>
-                                    <button type='submit' className='btn btn-block'>
+                                    <Button variant="contained" color="success" type='submit' fullWidth='true'>
                                         Save
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
+                            <div className='form-group'>
+                                <Button variant="outlined" color="error" fullWidth='true' onClick={() => setModal(false)}>
+                                    Cancel
+                                </Button>
+                            </div>
                         </section>
                     </div>
                 </div>
-                <button onClick={() => setModal(false)} className='btn'>
-                    Cancel
-                </button>
             </Modal>
 
+            {/* VIEW USER MODAL */}
+            <Modal
+                isOpen={viewModal}
+                onRequestClose={() => setViewModal(true)}
+                style={customStyles}
+            >
+                <div>
+                    <section className='heading'>
+                        <h1>
+                            <p>USER DETAIL</p>
+                        </h1>
+                    </section>
+                    <div>
+                        <section className='form'>
+                            <form onSubmit={onSubmitUpdate}>
+                                <div className='form-group'>
+                                    <label>First Name</label>
+                                    <input
+                                        type='text'
+                                        className='form-control'
+                                        id='updateFirstName'
+                                        name='updateFirstName'
+                                        value={updateUser.updateFirstName}
+                                        onChange={onChangeUpdate}
+                                        required
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <label>Last Name</label>
+                                    <input
+                                        type='text'
+                                        className='form-control'
+                                        id='updateLastName'
+                                        name='updateLastName'
+                                        value={updateUser.updateLastName}
+                                        onChange={onChangeUpdate}
+                                        required
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <label>Username</label>
+                                    <input
+                                        type='text'
+                                        className='form-control'
+                                        id='updateUsername'
+                                        name='updateUsername'
+                                        value={updateUser.updateUsername}
+                                        onChange={onChangeUpdate}
+                                        required
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <label>User Type</label>
+                                    <Select id='updateRecordType'
+                                        name='updateRecordType'
+                                        options={RecordType}
+                                        onChange={onChangeDropdownUpdate}
+                                        className='form-control'
+                                        value={RecordType.filter(({ value }) => value === updateUser.updateRecordType)}
+                                        required />
+                                </div>
+                                <div className='form-group'>
+                                    <label>Is Active?</label>
+                                    <input
+                                        type='checkbox'
+                                        className='form-control'
+                                        id='updateIsActive'
+                                        name='updateIsActive'
+                                        placeholder='Enter your username'
+                                        checked={updateUser.updateIsActive}
+                                        onChange={onChangeCheckbox}
+                                    />
+                                </div>
+                                <div className='form-group'>
+                                    <Button variant="contained" color="success" type='submit' fullWidth='true'>
+                                        Update
+                                    </Button>
+                                </div>
+
+                            </form>
+                            <div className='form-group'>
+                                <Box sx={{ mt: 1 }}>
+                                    <Button variant="outlined" color="error" fullWidth='true' onClick={() => setResetModal(true)}>
+                                        Reset Password
+                                    </Button>
+                                </Box>
+                                <Box sx={{ mt: 1 }}>
+                                    <Button variant="outlined" color="error" fullWidth='true' onClick={() => setViewModal(false)}>
+                                        Cancel
+                                    </Button>
+                                </Box>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* RESET PASSWORD MODAL */}
             <Modal
                 isOpen={resetModal}
                 onRequestClose={() => setResetModal(false)}
@@ -452,12 +503,15 @@ function MaintenanceUser() {
                         </h1>
                     </div>
                 </div>
-                <button onClick={() => setModal(false)} className='btn btn-block'>
-                    Reset Password
-                </button>
-                <button onClick={() => setResetModal(false)} className='btn btn-block'>
-                    Cancel
-                </button>
+
+                <Box sx={{ m: 1 }}>
+                    <Button sx={{ mx: 1 }} variant="contained" color="error" onClick={() => setResetModal(false)}>
+                        Reset Password
+                    </Button>
+                    <Button sx={{ mx: 1 }} variant="outlined" color="error" onClick={() => setResetModal(false)}>
+                        Cancel
+                    </Button>
+                </Box>
             </Modal>
         </>
     )
