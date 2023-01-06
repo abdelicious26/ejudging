@@ -65,7 +65,7 @@ function MaintenanceParticipant() {
 
     useEffect(() => {
         axios.get(
-            'http://localhost:5000/api/participant/',
+            `${process.env.REACT_APP_BACKEND_API}participant/`,
             { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                 if (!response) setAllParticipants("No Participant Records")
                 setAllParticipants(response.data);
@@ -131,7 +131,7 @@ function MaintenanceParticipant() {
         console.log(newName)
         console.log(newDescription)
         axios.post(
-            URL,
+            `${process.env.REACT_APP_BACKEND_API}participant/`,
             {
                 name: newName,
                 description: newDescription
@@ -146,7 +146,7 @@ function MaintenanceParticipant() {
                 })
                 // AUTO REFRESH TABLE
                 axios.get(
-                    'http://localhost:5000/api/participant/',
+                    `${process.env.REACT_APP_BACKEND_API}participant/`,
                     { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                         if (!response) setAllParticipants("No Participant Records")
                         setAllParticipants(response.data);
@@ -166,7 +166,7 @@ function MaintenanceParticipant() {
         }
         console.log(URL)
         axios.put(
-            URL,
+            `${process.env.REACT_APP_BACKEND_API}participant/${updateId}`,
             {
                 name: updateName,
                 description: updateDescription,
@@ -186,7 +186,7 @@ function MaintenanceParticipant() {
                 setViewModal(false);
                 // AUTO REFRESH TABLE
                 axios.get(
-                    'http://localhost:5000/api/participant/',
+                    `${process.env.REACT_APP_BACKEND_API}participant/`,
                     { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                         if (!response) setAllParticipants("No Participant Records")
                         setAllParticipants(response.data);

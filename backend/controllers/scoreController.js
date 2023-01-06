@@ -2,19 +2,18 @@ const scoreModel = require('../models/scoreModel');
 const eventModel = require('../models/eventModel');
 const asyncHandler = require('express-async-handler')
 
+// @desc    Get all users with that is judge and active
+// @route   GET /api/event/
+// @access  Protected
 module.exports.getEvents = asyncHandler(async (request, response) => {
     console.log(request.user)
     const event = await eventModel.find({ "judge.userId": request.user._id, isActive: true }).sort({ dateTime: 1, name: 1, description: 1 })
     response.status(200).json(event)
-    // return eventModel.find({ "judge.userId": userId, isActive: true }).then(events => {
-    //     return events
-    // })
 });
-// module.exports.getEvents = asyncHandler(async (request, response) => {
-//     response.status(200).json(request.user)
-// })
 
-
+// @desc    Get the score of the event
+// @route   GET /api/event/:id
+// @access  Protected
 module.exports.detail = asyncHandler(async (request, response) => {
     const event = await eventModel.findById(request.params.id)
     if (!event) {
@@ -24,6 +23,9 @@ module.exports.detail = asyncHandler(async (request, response) => {
     response.status(200).json(event)
 })
 
+// @desc    Get the score details
+// @route   GET /api/event/score/:id
+// @access  Protected
 module.exports.score = asyncHandler(async (request, response) => {
     const myScore = await scoreModel.find({ judge: request.user._id, event: request.params.id })
     if (!myScore) {
@@ -33,7 +35,9 @@ module.exports.score = asyncHandler(async (request, response) => {
     response.status(200).json(myScore)
 })
 
-
+// @desc    Create Score
+// @route   PUT /api/event/:id
+// @access  Protected
 module.exports.create = asyncHandler(async (request, response) => {
     const { criteria, participant, score } = request.body
 

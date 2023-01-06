@@ -39,7 +39,7 @@ function MaintenanceUser() {
             transform: 'translate(-50%, -50%)',
         },
     };
-    
+
     const RecordType = [
         { label: "Admin", value: 'admin' },
         { label: "Judge", value: 'judge' }
@@ -64,14 +64,14 @@ function MaintenanceUser() {
     const [modal, setModal] = useState(false);
     const [resetModal, setResetModal] = useState(false);
     const [viewModal, setViewModal] = useState(false);
-    const { newFirstName, newLastName, newUsername, newRecordType } = newUser
-    const { updateId, updateFirstName, updateLastName, updateUsername, updateRecordType, updateIsActive } = updateUser
+    const { newFirstName, newLastName, newUsername, newRecordType } = newUser;
+    const { updateId, updateFirstName, updateLastName, updateUsername, updateRecordType, updateIsActive } = updateUser;
 
     const navigate = useNavigate()
-    const dispatch = useDispatch()
     const { user } = useSelector((state) => state.auth)
     const token = user.token
     let selectedUser = {};
+
     if (!user) {
         navigate('/login')
     }
@@ -80,7 +80,7 @@ function MaintenanceUser() {
     }
     useEffect(() => {
         axios.get(
-            'http://localhost:5000/api/users/',
+            `${process.env.REACT_APP_BACKEND_API}users/`,
             { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                 if (!response) setAllUsers("No User Records")
                 setAllUsers(response.data);
@@ -88,10 +88,65 @@ function MaintenanceUser() {
             })
     }, [])
 
-    //console.log(allUsers);
+    /*
+    *   @Description:   Fields On change function on New User Record
+    *   @Parameters:     event
+    */
+    const onChangeNew = (e) => {
+        setNewUser((prevState) => ({
+            ...prevState,
+            [e.target.name]: e.target.value,
+        }))
+    }
+    /*
+    *   @Description:   Fields On change dropdown function on New User Record
+    *   @Parameters:     event
+    */
+    const onChangeDropdownNew = (e) => {
+        setNewUser((prevState) => ({
+            ...prevState,
+            newRecordType: e.value,
+        }))
+        console.log(newUser)
+    }
+    /*
+    *   @Description:   Fields On change function on Updating User Record
+    *   @Parameters:     event
+    */
+    const onChangeUpdate = (e) => {
+        setUpdateUser((prevState) => ({
+            ...prevState,
+            [e.target.name]: e.target.value,
+        }))
+    }
+    /*
+    *   @Description:   Fields On change checkbox function on Updating User Record
+    *   @Parameters:     event
+    */
+    const onChangeCheckbox = (e) => {
+        setUpdateUser((prevState) => ({
+            ...prevState,
+            [e.target.name]: e.target.checked,
+        }))
+        console.log(e.target.checked)
+    }
+    /*
+    *   @Description:   Fields On change dropdown function on Updating User Record
+    *   @Parameters:     event
+    */
+    const onChangeDropdownUpdate = (e) => {
+        setUpdateUser((prevState) => ({
+            ...prevState,
+            updateRecordType: e.value,
+        }))
+        console.log(updateUser)
+    }
 
-
-    //@UPDATE User RECORD -------------------------------------------
+    //ONCLICK FUNCTIONS
+    /*
+    *   @Description:   Button function that opens the modal and get the selected User's details
+    *   @Parameters:     event
+    */
     const openRecord = (event) => {
         //console.log(event.target.id)
         selectedUser = event.target.id;
@@ -108,54 +163,18 @@ function MaintenanceUser() {
         })
         console.log(updateUser)
     }
-
-    //ONCHANGE FUNCTIONS
-    const onChangeNew = (e) => {
-        setNewUser((prevState) => ({
-            ...prevState,
-            [e.target.name]: e.target.value,
-        }))
-    }
-    const onChangeUpdate = (e) => {
-        setUpdateUser((prevState) => ({
-            ...prevState,
-            [e.target.name]: e.target.value,
-        }))
-    }
-    const onChangeCheckbox = (e) => {
-        setUpdateUser((prevState) => ({
-            ...prevState,
-            [e.target.name]: e.target.checked,
-        }))
-        console.log(e.target.checked)
-    }
-    const onChangeDropdownNew = (e) => {
-        setNewUser((prevState) => ({
-            ...prevState,
-            newRecordType: e.value,
-        }))
-        console.log(newUser)
-    }
-    const onChangeDropdownUpdate = (e) => {
-        setUpdateUser((prevState) => ({
-            ...prevState,
-            updateRecordType: e.value,
-        }))
-        console.log(updateUser)
-    }
-
-    //ONCLICK FUNCTIONS
-    //CREATE NEW USER BUTTON
+    /*
+    *   @Description:   Button function of Creating new User
+    *   @Parameters:     event
+    */
     const onSubmitCreate = (e) => {
         e.preventDefault()
-        let URL = 'http://localhost:5000/api/users/create'
-        console.log(URL)
         if (!newRecordType) {
             return toast.error('Please Select a Record Type');
         }
-        //SAVE NEW USER
+        //SAVE NEW USER 
         axios.post(
-            URL,
+            `${process.env.REACT_APP_BACKEND_API}users/create`,
             {
                 firstName: newFirstName,
                 lastName: newLastName,
@@ -168,7 +187,6 @@ function MaintenanceUser() {
                 }
             })
             .then((response) => {
-                console.log('success', response);
                 toast.success('Save Success');
                 setNewUser({
                     newFirstName: '',
@@ -178,7 +196,7 @@ function MaintenanceUser() {
                 })
                 // AUTO REFRESH TABLE
                 axios.get(
-                    'http://localhost:5000/api/users/',
+                    `${process.env.REACT_APP_BACKEND_API}users/`,
                     { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                         if (!response) setAllUsers("No User Records")
                         setAllUsers(response.data);
@@ -186,29 +204,25 @@ function MaintenanceUser() {
                     })
             })
             .catch((error) => {
-                console.log(error)
                 toast.error('Sorry, there was an error. the username might be already existing.')
             })
     }
-    // UPDATE USER BUTTON
+    /*
+    *   @Description:   Button function of Updating User record
+    *   @Parameters:     event
+    */
     const onSubmitUpdate = (e) => {
         e.preventDefault()
-        let URL = 'http://localhost:5000/api/users/update/' + updateId
+        //VALIDATING SOME FIELDS
         if (!updateId) {
             return toast.error('Please select a user record');
         }
         if (!updateRecordType) {
             return toast.error('Please Select a Record Type');
         }
-        console.log(URL)
-        console.log('firstname ' + updateFirstName)
-        console.log('lastname ' + updateLastName)
-        console.log('username ' + updateUsername)
-        console.log('recordtpye ' + updateRecordType)
-        console.log('isactive ' + updateIsActive)
         //SAVE UPDATE USER
         axios.put(
-            URL,
+            `${process.env.REACT_APP_BACKEND_API}users/update/${updateId}`,
             {
                 firstName: updateFirstName,
                 lastName: updateLastName,
@@ -218,7 +232,6 @@ function MaintenanceUser() {
             },
             { headers: { "Authorization": `Bearer ${token}` } })
             .then((response) => {
-                console.log('success')
                 toast.success('Update Success');
                 setUpdateUser({
                     updateId: '',
@@ -228,11 +241,58 @@ function MaintenanceUser() {
                     updateRecordType: '',
                     updateIsActive: false
                 })
-                console.log(updateUser);
                 setViewModal(false);
                 // AUTO REFRESH TABLE
                 axios.get(
-                    'http://localhost:5000/api/users/',
+                    `${process.env.REACT_APP_BACKEND_API}users/`,
+                    { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                        if (!response) setAllUsers("No User Records")
+                        setAllUsers(response.data);
+                        console.log(response.data)
+                    })
+            })
+            .catch((error) => {
+                toast.error('Sorry, there was an error. the username might be already existing.')
+            })
+    }
+    /*
+    *   @Description:   Button function of Resetting User's Password to default
+    *   @Parameters:     event
+    */
+    const resetPassword = (e) => {
+        e.preventDefault()
+        //VALIDATING SOME FIELDS
+        if (!updateId) {
+            return toast.error('Please select a user record');
+        }
+        if (!updateRecordType) {
+            return toast.error('Please Select a Record Type');
+        }
+        //SAVE UPDATE USER
+        axios.put(
+            `${process.env.REACT_APP_BACKEND_API}users/update/${updateId}`,
+            {
+                firstName: updateFirstName,
+                lastName: updateLastName,
+                username: updateUsername,
+                recordType: updateRecordType,
+                isActive: updateIsActive
+            },
+            { headers: { "Authorization": `Bearer ${token}` } })
+            .then((response) => {
+                toast.success('Update Success');
+                setUpdateUser({
+                    updateId: '',
+                    updateFirstName: '',
+                    updateLastName: '',
+                    updateUsername: '',
+                    updateRecordType: '',
+                    updateIsActive: false
+                })
+                setViewModal(false);
+                // AUTO REFRESH TABLE
+                axios.get(
+                    `${process.env.REACT_APP_BACKEND_API}users/`,
                     { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                         if (!response) setAllUsers("No User Records")
                         setAllUsers(response.data);
@@ -244,7 +304,9 @@ function MaintenanceUser() {
             })
     }
 
-
+    /*
+    *   @Description:   Returns UI
+    */
     return (
         <>
             <Box sx={{ flexGrow: 1 }}>
@@ -518,5 +580,4 @@ function MaintenanceUser() {
 }
 
 
-export default MaintenanceUser
-
+export default MaintenanceUser;

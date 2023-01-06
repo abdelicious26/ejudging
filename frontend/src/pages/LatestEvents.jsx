@@ -49,7 +49,8 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 1000,
+    width: '90%',
+    height: '90%',
     bgcolor: 'background.paper',
     border: '2px solid #000',
     overflow: 'auto',
@@ -58,6 +59,7 @@ const style = {
     px: 4,
     pb: 3,
 };
+
 const modalStyle = {
     position: 'absolute',
     top: '10%',
@@ -96,25 +98,25 @@ function LatestEvents() {
         else {
             token = user.token
             axios.get(
-                'http://localhost:5000/api/events/',
+                `${process.env.REACT_APP_BACKEND_API}events/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllEvents("No Event Records")
                     setAllEvents(response.data);
                 })
             axios.get(
-                'http://localhost:5000/api/users/',
+                `${process.env.REACT_APP_BACKEND_API}users/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllJudge("No User Records")
                     setAllJudge(response.data);
                 })
             axios.get(
-                'http://localhost:5000/api/participant/',
+                `${process.env.REACT_APP_BACKEND_API}participant/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllParticipants("No User Records")
                     setAllParticipants(response.data);
                 })
             axios.get(
-                'http://localhost:5000/api/criteria/',
+                `${process.env.REACT_APP_BACKEND_API}criteria/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllCriteria("No User Records")
                     setAllCriteria(response.data);
@@ -153,7 +155,7 @@ function LatestEvents() {
             let AllEventScore = []
             URL = 'http://localhost:5000/api/events/detail/result/' + selectedEvent._id
             axios.get(
-                URL,
+                `${process.env.REACT_APP_BACKEND_API}events/detail/result/${selectedEvent._id}`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) return
                     AllEventScore = response.data
@@ -230,7 +232,7 @@ function LatestEvents() {
             return toast.error('Sorry. There was an error on your request.');
         }
         axios.put(
-            URL,
+            `${process.env.REACT_APP_BACKEND_API}events/detail/${selectedEvent._id}`,
             {
                 name: selectedEvent.name,
                 description: selectedEvent.description,
@@ -259,7 +261,7 @@ function LatestEvents() {
                     aria-labelledby="child-modal-title"
                     aria-describedby="child-modal-description"
                 >
-                    <Box sx={{ ...style, width: 1000 }}>
+                    <Box sx={{ ...style, width: '80%', height: '80%' }}>
                         <h3>Event Name:</h3>
                         <h2 id="child-modal-title">{selectedEvent.name}</h2>
                         <TableContainer component={Paper}>

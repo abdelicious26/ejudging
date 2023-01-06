@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import axios from 'axios'
-import { toast } from 'react-toastify'
+import EventDetail from './EventDetail';
+import { format } from "date-fns";
+
 import { styled } from '@mui/material/styles';
-import { Modal, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Box, Switch, Grid } from '@mui/material';
-import EventDetail from './EventDetail'
+import { Modal, Stack, Paper, Box, Typography, TextField, Button, FormControl, Switch } from '@mui/material';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -16,13 +17,31 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 
-const modalStyle = {
+const style = {
     position: 'absolute',
-    top: '10%',
-    left: '10%',
-    overflow: 'scroll',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '90%',
+    height: '90%',
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    overflow: 'auto',
+    boxShadow: 24,
+    pt: 2,
+    px: 4,
+    pb: 3,
+};
+
+const itemStyle = {
+    bgcolor: 'background.paper',
+    borderColor: 'text.primary',
+    mh: 1,
+    border: 1,
+    width: '100%',
     height: '100%',
-    display: 'block'
+    borderRadius: '16px',
+    boxShadow: 3
 };
 
 function Judge() {
@@ -50,25 +69,25 @@ function Judge() {
         else {
             token = user.token
             axios.get(
-                'http://localhost:5000/api/judge/',
+                `${process.env.REACT_APP_BACKEND_API}judge/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllEvents("No Event Records")
                     setAllEvents(response.data);
                 })
             axios.get(
-                'http://localhost:5000/api/users/',
+                `${process.env.REACT_APP_BACKEND_API}users/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllJudge("No User Records")
                     setAllJudge(response.data);
                 })
             axios.get(
-                'http://localhost:5000/api/participant/',
+                `${process.env.REACT_APP_BACKEND_API}participant/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllParticipants("No User Records")
                     setAllParticipants(response.data);
                 })
             axios.get(
-                'http://localhost:5000/api/criteria/',
+                `${process.env.REACT_APP_BACKEND_API}criteria/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllCriteria("No User Records")
                     setAllCriteria(response.data);
@@ -116,71 +135,129 @@ function Judge() {
         setModal(true)
     }
 
-    //@ONSUBMIT FUNCTIONS
+    const handleCloseEvent = (value) => {
+        setModal(false);
+        console.log(value);
+    };
 
-    //@SHOW FORMS
+    const formatDateAndTime = (value) => {
+        const _date = Date.parse(value);
+        return format(_date, "MMMM d, yyyy - h:mma");;
+    };
+
+    const handleCloseModal = (value) => {
+        if (window.confirm('Are you sure you want to close? any unsaved changes will not be saved.')) {
+            console.log('closing the modal');
+            setModal(false);
+        }
+    };
 
     return (
         <>
-            <Grid container spacing={2}>
-                <Grid item xs={12}>
-                    <Item>
-                        <section className='heading'>
-                            <h1>
-                                Latest Events
-                            </h1>
-                        </section>
-                        <TableContainer component={Paper}>
-                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell align="right">Event Name</TableCell>
-                                        <TableCell align="right">Description</TableCell>
-                                        <TableCell align="right">Venue</TableCell>
-                                        <TableCell align="right">Date & Time</TableCell>
-                                        <TableCell align="right">On Going?</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {allEvents.map((row) => (
-                                        <TableRow
-                                            key={row._id}
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                        >
-                                            <TableCell align="right">{row.name}</TableCell>
-                                            <TableCell align="right">{row.description}</TableCell>
-                                            <TableCell align="right">{row.venue}</TableCell>
-                                            <TableCell align="right">{row.dateTime}</TableCell>
-                                            <TableCell align="right">
-                                                <input
-                                                    type='checkbox'
-                                                    className='form-control'
-                                                    id='isOnGoing'
-                                                    name='isOnGoing'
-                                                    checked={row.IsOnGoing}
-                                                    readOnly />
-                                            </TableCell>
-                                            <TableCell>
-                                                <Button id={row._id} variant="contained" onClick={onClickView}>View</Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Item>
-                </Grid>
-            </Grid>
+            <section className='heading'>
+                <h1>
+                    <p>My Events</p>
+                </h1>
+            </section>
 
+            <TextField label={'Search Event Name'} id="margin-normal" fullWidth margin="normal" />
+            <Stack spacing={2}>
+                {allEvents.map((eventRecord) => (
+                    <Item key={eventRecord._id}
+                        sx={{
+                            ...itemStyle
+                        }}
+                    >
+                        <Box>
+                            <FormControl fullWidth>
+                                <TextField
+                                    label="Event Name"
+                                    defaultValue={eventRecord.name}
+                                    inputProps={{
+                                        readOnly: true, inputMode: 'date'
+                                    }}
+                                    // fullWidth 
+                                    variant="outlined"
+                                    size="medium"
+                                    color="error"
+                                    margin="dense"
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <TextField
+                                    label="Description"
+                                    defaultValue={eventRecord.description}
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    // fullWidth 
+                                    variant="outlined"
+                                    size="medium"
+                                    color="error"
+                                    margin="dense"
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <TextField
+                                    label="Venue"
+                                    defaultValue={eventRecord.venue}
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    // fullWidth 
+                                    variant="outlined"
+                                    size="medium"
+                                    color="error"
+                                    margin="dense"
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <TextField
+                                    label="Date & Time"
+                                    defaultValue={formatDateAndTime(eventRecord.dateTime)}
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    // fullWidth 
+                                    variant="outlined"
+                                    size="medium"
+                                    color="error"
+                                    margin="dense"
+                                    sx={{ mb: 2 }}
+                                />
+                                <div>
+                                    On Going Event?
+                                    <Switch
+                                        checked={eventRecord.IsOnGoing}
+                                        inputProps={{ 'aria-label': 'controlled' }}
+                                        name='IsOnGoing'
+                                        color="error"
+                                        readOnly
+                                    />
+                                </div>
+
+                                <Button sx={{ mt: 1 }} id={eventRecord._id} variant="contained" size="large"
+                                    color="error" fullWidth onClick={onClickView}>View</Button>
+
+                            </FormControl>
+                        </Box>
+                    </Item>
+                ))}
+            </Stack>
 
             <Modal
                 open={modal}
-                onClose={() => setModal(false)}
+                onClose={handleCloseModal}
                 aria-labelledby="parent-modal-title"
                 aria-describedby="parent-modal-description"
-                className={modalStyle}
             >
-                <EventDetail event={selectedEvent} participants={allParticipants} criteria={allCriteria} judges={allJudge} />
+                <Box sx={{ ...style }}>
+                    <EventDetail event={selectedEvent} participants={allParticipants} criteria={allCriteria} judges={allJudge} />
+
+                    <Button variant="outlined" color="error" fullWidth onClick={handleCloseModal} sx={{ mt: 3 }}>
+                        Close
+                    </Button>
+                </Box>
             </Modal>
         </>
     )

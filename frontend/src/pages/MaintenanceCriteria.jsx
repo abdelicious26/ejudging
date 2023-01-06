@@ -63,7 +63,7 @@ function MaintenanceCriteria() {
     }
     useEffect(() => {
         axios.get(
-            'http://localhost:5000/api/criteria/',
+            `${process.env.REACT_APP_BACKEND_API}criteria/`,
             { headers: { "Authorization": `Bearer ${token}` } })
             .then(response => {
                 if (!response) setAllCriteria("No Criteria Records")
@@ -124,7 +124,7 @@ function MaintenanceCriteria() {
         console.log(newName)
         console.log(newDescription)
         axios.post(
-            URL,
+            `${process.env.REACT_APP_BACKEND_API}criteria/`,
             {
                 name: newName,
                 description: newDescription
@@ -138,7 +138,7 @@ function MaintenanceCriteria() {
                     newDescription: ''
                 })
                 axios.get(
-                    'http://localhost:5000/api/criteria/',
+                    `${process.env.REACT_APP_BACKEND_API}criteria/`,
                     { headers: { "Authorization": `Bearer ${token}` } })
                     .then(response => {
                         if (!response) setAllCriteria("No Criteria Records")
@@ -158,7 +158,7 @@ function MaintenanceCriteria() {
         }
         console.log(URL)
         axios.put(
-            URL,
+            `${process.env.REACT_APP_BACKEND_API}criteria/${updateId}`,
             {
                 name: updateName,
                 description: updateDescription,
@@ -176,7 +176,7 @@ function MaintenanceCriteria() {
                 })
                 console.log(updateCriteria)
                 axios.get(
-                    'http://localhost:5000/api/criteria/',
+                    `${process.env.REACT_APP_BACKEND_API}criteria/`,
                     { headers: { "Authorization": `Bearer ${token}` } })
                     .then(response => {
                         if (!response) setAllCriteria("No Criteria Records")

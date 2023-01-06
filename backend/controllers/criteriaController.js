@@ -1,6 +1,8 @@
 const criteriaModel = require('../models/criteriaModel');
 const asyncHandler = require('express-async-handler')
 
+// @desc    Create new Criteria Record
+// @access  Protected
 module.exports.create = asyncHandler(async (request, response) => {
     const { name, description } = request.body
     if (!name) {
@@ -19,21 +21,29 @@ module.exports.create = asyncHandler(async (request, response) => {
     response.status(200).json(criteria)
 });
 
+// @desc    get all criteria records
+// @access  Protected
 module.exports.getAll = asyncHandler(async (request, response) => {
     const criteria = await criteriaModel.find().sort({ name: 1, description: 1 })
     response.status(200).json(criteria)
 })
 
+// @desc    get all active criteria records
+// @access  Protected
 module.exports.getAllActive = asyncHandler(async (request, response) => {
     const criteria = await criteriaModel.find({ isActive: true }).sort({ name: 1, description: 1 })
     response.status(200).json(criteria)
 })
 
+// @desc    get criteria details
+// @access  Protected
 module.exports.detail = asyncHandler(async (request, response) => {
     const criteria = await criteriaModel.findById(request.params.id)
     response.status(200).json(criteria)
 })
 
+// @desc    update criteria details
+// @access  Protected
 module.exports.update = asyncHandler(async (request, response) => {
     const criteria = await criteriaModel.findById(request.params.id)
     if (!criteria) {

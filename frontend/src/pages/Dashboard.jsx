@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import axios from 'axios'
+import axios from 'axios';
 
 //import "@fullcalendar/core/main.css";
 import "@fullcalendar/daygrid/main.css";
 
 function Dashboard() {
-    const navigate = useNavigate()
-    const { user } = useSelector((state) => state.auth)
+    const navigate = useNavigate();
+    const { user } = useSelector((state) => state.auth);
     const [allEvents, setAllEvents] = useState([]);
     let token
     useEffect(() => {
@@ -25,7 +25,7 @@ function Dashboard() {
             token = user.token
         }
         axios.get(
-            'http://localhost:5000/api/events/',
+            `${process.env.REACT_APP_BACKEND_API}events/`,
             { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                 //console.log(response.data)
                 if (response) {

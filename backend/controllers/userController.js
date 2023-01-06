@@ -3,16 +3,25 @@ const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 
+// @desc    Get all user records
+// @route   GET /api/users/
+// @access  Protected
 module.exports.getAll = asyncHandler(async (request, response) => {
     const users = await userModel.find().sort({ firstName: 1, lastName: 1 })
     response.status(200).json(users)
 })
 
+// @desc    Get all users with that is judge and active
+// @route   GET /api/users/active
+// @access  Protected
 module.exports.getAllActiveJudge = asyncHandler(async (request, response) => {
     const users = await userModel.find({ isActive: true, recordType: 'judge' }).sort({ firstName: 1, lastName: 1 })
     response.status(200).json(users)
 })
 
+// @desc    Update User details
+// @route   PUT /api/users/update/:id
+// @access  Protected
 module.exports.update = asyncHandler(async (request, response) => {
     const user = await userModel.findById(request.params.id)
     if (!user) {
@@ -39,6 +48,9 @@ module.exports.update = asyncHandler(async (request, response) => {
     response.status(200).json(updatedUser)
 })
 
+// @desc    Change user's password
+// @route   PUT /api/users/changepassword/:id
+// @access  Protected
 module.exports.changePassword = asyncHandler(async (request, response) => {
     const user = await userModel.findById(request.params.id)
     if (!user) {
@@ -75,6 +87,34 @@ module.exports.changePassword = asyncHandler(async (request, response) => {
     response.status(200).json(updatedUser)
 })
 
+// @desc    Reset user's password to default
+// @route   PUT /api/users/resetpassword/:id
+// @access  Protected
+module.exports.resetPassword = asyncHandler(async (request, response) => {
+    const user = await userModel.findById(request.params.id)
+    if (!user) {
+        response.status(400)
+        throw new Error('User not found')
+    }
+    const { defaultPassword } = request.body
+    if (!defaultPassword) {
+        response.status(400)
+        throw new Error('Please add all fields')
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(defaultPassword, salt)
+    const updatedPassword = {
+        password: hashedPassword
+    }
+    const updatedUser = await userModel.findByIdAndUpdate(request.params.id, updatedPassword, { new: true, })
+    response.status(200).json(updatedUser)
+})
+
+// @desc    Retrieve User's Details
+// @route   GET /api/users/:id
+// @access  Protected
 module.exports.details = async (request, response) => {
     const user = await userModel.findById(request.params.id)
     if (!user) {
@@ -85,7 +125,7 @@ module.exports.details = async (request, response) => {
 };
 
 // @desc    Register new user
-// @route   POST /api/users
+// @route   POST /api/users/create
 // @access  Public
 module.exports.create = asyncHandler(async (request, response) => {
     const { firstName, lastName, username, recordType } = request.body
@@ -127,7 +167,6 @@ module.exports.create = asyncHandler(async (request, response) => {
 })
 
 // @desc    Authenticate a user
-// @desc    Authenticate a user
 // @route   POST /api/users/login
 // @access  Public
 module.exports.login = asyncHandler(async (request, response) => {
@@ -145,6 +184,7 @@ module.exports.login = asyncHandler(async (request, response) => {
         })
     } else {
         response.status(400)
+        console.log('ERROR ON LOGIN')
         throw new Error('Invalid credentials')
     }
 })

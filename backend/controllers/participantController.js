@@ -1,6 +1,8 @@
 const participantModel = require('../models/participantModel');
 const asyncHandler = require('express-async-handler')
 
+// @desc    Create participant record
+// @access  Protected
 module.exports.create = asyncHandler(async (request, response) => {
     const { name, description } = request.body
     if (!name) {
@@ -19,21 +21,29 @@ module.exports.create = asyncHandler(async (request, response) => {
     response.status(200).json(participant)
 });
 
+// @desc    Get all participant Records
+// @access  Protected
 module.exports.getAll = asyncHandler(async (request, response) => {
     const participant = await participantModel.find().sort({ name: 1, description: 1 })
     response.status(200).json(participant)
 })
 
+// @desc    Get all active participants Records
+// @access  Protected
 module.exports.getAllActive = asyncHandler(async (request, response) => {
     const participant = await participantModel.find({ isActive: true }).sort({ name: 1, description: 1 })
     response.status(200).json(participant)
 })
 
+// @desc    Get participant Detail
+// @access  Protected
 module.exports.detail = asyncHandler(async (request, response) => {
     const participant = await participantModel.findById(request.params.id)
     response.status(200).json(participant)
 })
 
+// @desc    Update Participant Details
+// @access  Protected
 module.exports.update = asyncHandler(async (request, response) => {
     const participant = await participantModel.findById(request.params.id)
     if (!participant) {

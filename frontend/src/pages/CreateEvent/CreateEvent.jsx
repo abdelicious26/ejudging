@@ -9,9 +9,10 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { useTheme, styled } from '@mui/material/styles';
 import {
-    TextField, Input, Select, Button, InputLabel, Box, OutlinedInput, MenuItem, FormControl, Chip,
-    StepLabel, Step, Stepper, Stack, Paper, Grid, CardContent, Card, CssBaseline
+    TextField, Input, Button, InputLabel, Box, OutlinedInput, MenuItem, FormControl, Chip,
+    StepLabel, Step, Stepper, Stack, Paper, Grid, CardContent, Card, CssBaseline, Checkbox, ListItemText
 } from '@mui/material';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 const backend = process.env.BACKEND;
 
 const ITEM_HEIGHT = 48;
@@ -44,7 +45,6 @@ function getStyles(name, selectedJudge, theme) {
 
 
 function CreateEvent() {
-    console.log(backend)
     const theme = useTheme();
     const navigate = useNavigate()
     const { user } = useSelector((state) => state.auth)
@@ -78,7 +78,7 @@ function CreateEvent() {
 
     useEffect(() => {
         axios.get(
-            'http://localhost:5000/api/users/active',
+            `${process.env.REACT_APP_BACKEND_API}users/active`,
             { headers: { "Authorization": `Bearer ${token}` } })
             .then(response => {
                 if (!response) return setGetJudge("No Active Judge Records")
@@ -98,7 +98,7 @@ function CreateEvent() {
             })
         //console.log(showJudge)
         axios.get(
-            'http://localhost:5000/api/participant/active',
+            `${process.env.REACT_APP_BACKEND_API}participant/active`,
             { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                 if (!response) setGetParticipant("No Active Participant Records")
                 let tempParticipantList = []
@@ -114,7 +114,7 @@ function CreateEvent() {
                 setShowParticipant(tempActiveParticipant);
             })
         axios.get(
-            'http://localhost:5000/api/criteria/active',
+            `${process.env.REACT_APP_BACKEND_API}criteria/active`,
             { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                 if (!response) setGetCriteria("No Active Criteria Records")
                 let tempCriteriaList = []
@@ -211,7 +211,7 @@ function CreateEvent() {
         else {
             let URL = 'http://localhost:5000/api/events/'
             axios.post(
-                URL,
+                `${process.env.REACT_APP_BACKEND_API}events/`,
                 {
                     name: name,
                     description: description,
@@ -229,7 +229,7 @@ function CreateEvent() {
                     //@SAVING JUDGE ON DATABASE
                     saveJudge.forEach(judge => {
                         axios.put(
-                            'http://localhost:5000/api/events/detail/judge/' + response.data._id,
+                            `${process.env.REACT_APP_BACKEND_API}events/detail/judge/${response.data._id}`,
                             {
                                 userId: judge
                             },
@@ -245,7 +245,7 @@ function CreateEvent() {
                     //@SAVING PARTICIPANT ON DATABASE
                     saveParticipant.forEach(participant => {
                         axios.put(
-                            'http://localhost:5000/api/events/detail/participant/' + response.data._id,
+                            `${process.env.REACT_APP_BACKEND_API}events/detail/participant/${response.data._id}`,
                             {
                                 participantId: participant
                             },
@@ -261,7 +261,7 @@ function CreateEvent() {
                     //@SAVING PARTICIPANT ON DATABASE
                     saveCriteria.forEach(criteria => {
                         axios.put(
-                            'http://localhost:5000/api/events/detail/criteria/' + response.data._id,
+                            `${process.env.REACT_APP_BACKEND_API}events/detail/criteria/${response.data._id}`,
                             {
                                 criteriaId: criteria.id,
                                 percent: parseInt(criteria.percent)
@@ -371,14 +371,14 @@ function CreateEvent() {
                         variant="outlined"
                         required
                     />
-                    <InputLabel>Scoring Type</InputLabel>
+                    {/* <InputLabel>Scoring Type</InputLabel>
                     <Select id='newRecordType'
                         name='newRecordType'
                         options={RecordType}
                         // onChange={onChangeDropdownNew}
                         fullWidth
                         // value={RecordType.filter(({ value }) => value === newUser.newRecordType)}
-                        required />
+                        /> */}
                     <InputLabel>Date and Time</InputLabel>
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DateTimePicker
@@ -405,28 +405,19 @@ function CreateEvent() {
                                     <FormControl sx={{ m: 1, width: 400 }}>
                                         <InputLabel id="demo-multiple-chip-label">Criteria</InputLabel>
                                         <Select
-                                            labelId="demo-multiple-chip-label"
-                                            id="demo-multiple-chip"
+                                            labelId="demo-multiple-checkbox-label"
+                                            id="demo-multiple-checkbox"
                                             multiple
                                             value={selectedCriteria}
                                             onChange={handleChangeCriteria}
-                                            input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
-                                            renderValue={(selected) => (
-                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                    {selected.map((value) => (
-                                                        <Chip key={value} label={value} />
-                                                    ))}
-                                                </Box>
-                                            )}
+                                            input={<OutlinedInput label="Tag" />}
+                                            renderValue={(selected) => selected.join(', ')}
                                             MenuProps={MenuProps}
                                         >
                                             {showCriteria.map((name) => (
-                                                <MenuItem
-                                                    key={name}
-                                                    value={name}
-                                                    style={getStyles(name, selectedCriteria, theme)}
-                                                >
-                                                    {name}
+                                                <MenuItem key={name} value={name} style={getStyles(name, selectedCriteria, theme)}>
+                                                    <Checkbox checked={selectedCriteria.indexOf(name) > -1} />
+                                                    <ListItemText primary={name} />
                                                 </MenuItem>
                                             ))}
                                         </Select>
@@ -489,20 +480,14 @@ function CreateEvent() {
                                             <div>
                                                 <FormControl sx={{ m: 1, width: 400 }}>
                                                     <InputLabel id="demo-multiple-chip-label">Select Judges</InputLabel>
-                                                    <Select
+                                                    {/* <Select
                                                         labelId="demo-multiple-chip-label"
                                                         id="demo-multiple-chip"
                                                         multiple
                                                         value={selectedJudge}
                                                         onChange={handleChangeJudge}
                                                         input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
-                                                        renderValue={(selected) => (
-                                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                                {selected.map((value) => (
-                                                                    <Chip key={value} label={value} />
-                                                                ))}
-                                                            </Box>
-                                                        )}
+                                                        renderValue={(selected) => selected.join(', ')}
                                                         MenuProps={MenuProps}
                                                     >
                                                         {showJudge.map((name) => (
@@ -512,6 +497,23 @@ function CreateEvent() {
                                                                 style={getStyles(name, selectedJudge, theme)}
                                                             >
                                                                 {name}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select> */}
+                                                    <Select
+                                                        labelId="demo-multiple-checkbox-label"
+                                                        id="demo-multiple-checkbox"
+                                                        multiple
+                                                        value={selectedJudge}
+                                                        onChange={handleChangeJudge}
+                                                        input={<OutlinedInput label="Tag" />}
+                                                        renderValue={(selected) => selected.join(', ')}
+                                                        MenuProps={MenuProps}
+                                                    >
+                                                        {showJudge.map((name) => (
+                                                            <MenuItem key={name} value={name} style={getStyles(name, selectedJudge, theme)}>
+                                                                <Checkbox checked={selectedJudge.indexOf(name) > -1} />
+                                                                <ListItemText primary={name} />
                                                             </MenuItem>
                                                         ))}
                                                     </Select>
@@ -529,7 +531,7 @@ function CreateEvent() {
                                             <div>
                                                 <FormControl sx={{ m: 1, width: 400 }}>
                                                     <InputLabel id="demo-multiple-chip-label">Participants</InputLabel>
-                                                    <Select
+                                                    {/* <Select
                                                         labelId="demo-multiple-chip-label"
                                                         id="demo-multiple-chip"
                                                         multiple
@@ -552,6 +554,24 @@ function CreateEvent() {
                                                                 style={getStyles(name, selectedParticipant, theme)}
                                                             >
                                                                 {name}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select> */}
+
+                                                    <Select
+                                                        labelId="demo-multiple-checkbox-label"
+                                                        id="demo-multiple-checkbox"
+                                                        multiple
+                                                        value={selectedParticipant}
+                                                        onChange={handleChangeParticipant}
+                                                        input={<OutlinedInput label="Tag" />}
+                                                        renderValue={(selected) => selected.join(', ')}
+                                                        MenuProps={MenuProps}
+                                                    >
+                                                        {showParticipant.map((name) => (
+                                                            <MenuItem key={name} value={name} style={getStyles(name, selectedParticipant, theme)}>
+                                                                <Checkbox checked={selectedParticipant.indexOf(name) > -1} />
+                                                                <ListItemText primary={name} />
                                                             </MenuItem>
                                                         ))}
                                                     </Select>

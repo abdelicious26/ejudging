@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { format } from "date-fns";
+
 import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import Avatar from '@mui/material/Avatar';
@@ -30,7 +32,8 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 1000,
+    width: '80%',
+    height: '80%',
     bgcolor: 'background.paper',
     border: '2px solid #000',
     overflow: 'auto',
@@ -97,7 +100,7 @@ function EventDetail({ event, participants, criteria, judges }) {
             return { ...participant, criteria: criteriaWithScore, total: '', };
         });
 
-        setScore(participantList)
+        setScore(participantList);
     }, [selectedEvent])
 
     function SimpleDialog(props) {
@@ -177,11 +180,28 @@ function EventDetail({ event, participants, criteria, judges }) {
         if (!selectedEvent._id) {
             return toast.error('You have not selected any event');
         }
+        //Validating Score
+        let _hasError = false;
+        score.forEach(participant => {
+            //Check each score if input is 70-100
+            participant.criteria.forEach(scoreRecord => {
+                if (scoreRecord.score < 70 || scoreRecord.score > 100) {
+                    _hasError = true;
+                }
+            })
+        })
+
+        //If it has error
+        if (_hasError) {
+            toast.error('You can only input score 70-100.');
+            console.log('has error');
+        }
+        //If all input is valid
         else {
             score.forEach(participant => {
                 participant.criteria.forEach(scoreRecord => {
                     axios.put(
-                        URL,
+                        `${process.env.REACT_APP_BACKEND_API}judge/event/${selectedEvent._id}`,
                         {
                             participant: participant._id,
                             criteria: scoreRecord._id,
@@ -211,134 +231,144 @@ function EventDetail({ event, participants, criteria, judges }) {
         setSelectedParticipant(value);
     };
 
+    const formatDateAndTime = (value) => {
+        const _date = Date.parse(value);
+        return format(_date, "MMMM d, yyyy - h:mma");
+    };
+
     return (
         <>
-            <Box sx={{ ...style }}>
-                <section>
-                    <h1>
-                        Event Info:
-                    </h1>
-                    <TextField
-                        id="outlined-read-only-input"
-                        label="Event Name"
-                        defaultValue={selectedEvent.name}
-                        InputProps={{
-                            readOnly: true,
-                        }} fullWidth margin="dense"
-                    />
+            {/* <Box 
+            sx={{ ...style }}
+            > */}
+            <section>
+                <h1>
+                    Event Info:
+                </h1>
+                <TextField
+                    id="outlined-read-only-input"
+                    label="Event Name"
+                    defaultValue={selectedEvent.name}
+                    InputProps={{
+                        readOnly: true,
+                    }} fullWidth margin="dense" color="error"
+                />
 
-                    <TextField
-                        id="outlined-read-only-input"
-                        label="Description"
-                        defaultValue={selectedEvent.description}
-                        InputProps={{
-                            readOnly: true,
-                        }} fullWidth margin="dense"
-                    />
+                <TextField
+                    id="outlined-read-only-input"
+                    label="Description"
+                    defaultValue={selectedEvent.description}
+                    InputProps={{
+                        readOnly: true,
+                    }} fullWidth margin="dense" color="error"
+                />
 
-                    <TextField
-                        id="outlined-read-only-input"
-                        label="Venue"
-                        defaultValue={selectedEvent.venue}
-                        InputProps={{
-                            readOnly: true,
-                        }} fullWidth margin="dense"
-                    />
+                <TextField
+                    id="outlined-read-only-input"
+                    label="Venue"
+                    defaultValue={selectedEvent.venue}
+                    InputProps={{
+                        readOnly: true,
+                    }} fullWidth margin="dense" color="error"
+                />
 
-                    <TextField
-                        id="outlined-read-only-input"
-                        label="Date and Time"
-                        defaultValue={selectedEvent.dateTime}
-                        InputProps={{
-                            readOnly: true,
-                        }} fullWidth margin="dense"
+                <TextField
+                    id="outlined-read-only-input"
+                    label="Date and Time"
+                    defaultValue={formatDateAndTime(selectedEvent.dateTime)}
+                    InputProps={{
+                        readOnly: true,
+                    }} fullWidth margin="dense" color="error"
+                />
+                <div>
+                    On Going Event?
+                    <Switch
+                        checked={selectedEvent.IsOnGoing}
+                        inputProps={{ 'aria-label': 'controlled' }}
+                        name='IsOnGoing'
+                        readOnly
+                        color="error"
                     />
-                    <div>
-                        On Going Event?
-                        <Switch
-                            checked={selectedEvent.IsOnGoing}
-                            inputProps={{ 'aria-label': 'controlled' }}
-                            name='IsOnGoing'
-                            readOnly
-                        />
-                    </div>
-                </section>
+                </div>
+            </section>
 
-                <section>
-                    <SimpleDialog
-                        selectedValue={selectedParticipant}
-                        open={open}
-                        onClose={handleClose}
-                    />
+            <section>
+                <SimpleDialog
+                    selectedValue={selectedParticipant}
+                    open={open}
+                    onClose={handleClose}
+                />
 
-                    <Button variant="outlined" onClick={handleClickOpen}>
+                {/* <Button variant="outlined" onClick={handleClickOpen}>
                         Select a Participant
                     </Button>
                     <br />
                     <Typography variant="subtitle1" component="div">
                         Selected: {selectedParticipant}
-                    </Typography>
+                    </Typography> */}
 
-                    <form onSubmit={onSubmitScore}>
-                        <TableContainer component={Paper}>
-                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell align="right">Participant Name</TableCell>
-                                        <TableCell align="right">Criteria</TableCell>
-                                    </TableRow>
-                                </TableHead>
+                <form onSubmit={onSubmitScore}>
+                    <TableContainer component={Paper}>
+                        <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell align="right">Participant Name</TableCell>
+                                    <TableCell align="right">Criteria</TableCell>
+                                </TableRow>
+                            </TableHead>
 
-                                <TableBody>
-                                    {score.map((row) => (
-                                        <TableRow
-                                            key={row._id}
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                        >
-                                            <TableCell align="right">{row.name}</TableCell>
-                                            {row.criteria.map((criteria) => (
-                                                <TableCell key={criteria._id} align="right">
-                                                    <TextField
-                                                        id={row._id}
-                                                        name={criteria._id}
-                                                        label={criteria.name + ' ' + criteria.percent + '%'}
-                                                        value={criteria.score}
-                                                        onChange={onChangeScore}
-                                                        type="number"
-                                                        inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                        InputLabelProps={{
-                                                            shrink: true,
-                                                        }}
-                                                        variant="outlined"
-                                                        required
-                                                    />
-                                                </TableCell>
-                                            ))}
-
-                                            <TableCell align="right">
+                            <TableBody>
+                                {score.map((row) => (
+                                    <TableRow
+                                        key={row._id}
+                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                    >
+                                        <TableCell align="right">{row.name}</TableCell>
+                                        {row.criteria.map((criteria) => (
+                                            <TableCell key={criteria._id} align="right">
                                                 <TextField
                                                     id={row._id}
-                                                    name='total'
-                                                    label='TOTAL SCORE'
-                                                    value={row.total}
+                                                    name={criteria._id}
+                                                    label={criteria.name + ' ' + criteria.percent + '%'}
+                                                    value={criteria.score}
+                                                    onChange={onChangeScore}
+                                                    type="number"
+                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
                                                     InputLabelProps={{
                                                         shrink: true,
                                                     }}
-                                                    readOnly
-                                                    variant="filled"
+                                                    variant="outlined"
+                                                    required
+                                                    color="error"
                                                 />
                                             </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                        <Button type='submit' variant="outlined" color="success">
-                            Submit Score
-                        </Button>
-                    </form>
-                </section>
-            </Box>
+                                        ))}
+
+                                        <TableCell align="right">
+                                            <TextField
+                                                id={row._id}
+                                                name='total'
+                                                label='TOTAL SCORE'
+                                                value={row.total}
+                                                InputLabelProps={{
+                                                    shrink: true,
+                                                }}
+                                                readOnly
+                                                variant="filled"
+                                                color="error"
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                    <Button type='submit' variant="contained" color="success" disabled={!selectedEvent.IsOnGoing} fullWidth sx={{ mt: 3 }}>
+                        Save Score
+                    </Button>
+                </form>
+            </section>
+            {/* </Box> */}
         </>
     )
 }
