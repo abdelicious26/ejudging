@@ -49,7 +49,8 @@ function App() {
       return <MainPage />
     }
     else
-      return <></>
+
+      return <>hello</>
   }
 
 
