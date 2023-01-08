@@ -23,6 +23,8 @@ import TextField from '@mui/material/TextField';
 import Print from '@mui/icons-material/Print';
 import PreviewIcon from '@mui/icons-material/Preview';
 import { Divider } from '@mui/material'
+import { format } from "date-fns";
+
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
     ...theme.typography.body2,
@@ -351,6 +353,11 @@ function LatestEvents() {
             })
     })
 
+    const formatDateAndTime = (value) => {
+        const _date = Date.parse(value);
+        return format(_date, "MMMM d, yyyy - h:mma");;
+    };
+
     //@SHOW FORMS
     const showEventResult = () => {
         return (
@@ -550,7 +557,7 @@ function LatestEvents() {
                             <TextField
                                 id="outlined-read-only-input"
                                 label="Date and Time"
-                                defaultValue={selectedEvent.dateTime}
+                                defaultValue={formatDateAndTime(selectedEvent.dateTime)}
                                 InputProps={{
                                     readOnly: true,
                                 }} fullWidth margin="dense"
@@ -699,7 +706,7 @@ function LatestEvents() {
                                             <TableCell align="right">{row.name}</TableCell>
                                             <TableCell align="right">{row.description}</TableCell>
                                             <TableCell align="right">{row.venue}</TableCell>
-                                            <TableCell align="right">{row.dateTime}</TableCell>
+                                            <TableCell align="right">{formatDateAndTime(row.dateTime)}</TableCell>
                                             <TableCell align="right">
                                                 <input
                                                     type='checkbox'

@@ -6,7 +6,7 @@ import { toast } from 'react-toastify'
 import { login, reset } from '../features/auth/authSlice'
 import Spinner from '../components/Spinner'
 
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 
 function Login() {
     console.log('Login')
@@ -90,9 +90,9 @@ function Login() {
                         />
                     </div>
                     <div className='form-group'>
-                        <button type='submit' className='btn btn-block'>
+                        <Button variant="contained" color="error" type='submit' fullWidth='true'>
                             Submit
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </section>
