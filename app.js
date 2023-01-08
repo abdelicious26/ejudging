@@ -6,7 +6,7 @@ const User = require('./models/User');
 const port = process.env.PORT || 4000;
 require('dotenv').config();
 
-mongoose.connect(process.env.REACT_APP_DBCONNECTLOCAL, (err) => {
+mongoose.connect(process.env.REACT_APP_DBCONNECTONLINE, (err) => {
     if (!err) console.log('database connected');
     else console.log('database error');
 });
