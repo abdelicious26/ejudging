@@ -354,8 +354,13 @@ function LatestEvents() {
     })
 
     const formatDateAndTime = (value) => {
-        const _date = Date.parse(value);
-        return format(_date, "MMMM d, yyyy - h:mma");;
+        try{
+            const _date = Date.parse(value);
+            return format(_date, "MMMM d, yyyy - h:mma");;
+        }
+        catch(e){
+            return value;
+        }
     };
 
     //@SHOW FORMS
