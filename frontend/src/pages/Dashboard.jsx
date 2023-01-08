@@ -5,6 +5,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import axios from 'axios';
 
+
+import { Box, Button } from '@mui/material';
 //import "@fullcalendar/core/main.css";
 import "@fullcalendar/daygrid/main.css";
 
@@ -47,6 +49,9 @@ function Dashboard() {
 
     return (
         <>
+            <Button variant="contained" color="success" size="large">
+                Events Created: {allEvents.length}
+            </Button>
             <div className="App">
                 <FullCalendar
                     defaultView="dayGridMonth"

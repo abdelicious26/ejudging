@@ -22,6 +22,7 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Print from '@mui/icons-material/Print';
 import PreviewIcon from '@mui/icons-material/Preview';
+import { Divider } from '@mui/material'
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
     ...theme.typography.body2,
@@ -81,6 +82,7 @@ function LatestEvents() {
     const [selectedCriteria, setSelectedCriteria] = useState([]);
     const [modal, setModal] = useState(false);
     const [resultModal, setResultModal] = useState(false);
+    const [rankPerJudge, setRankPerJudge] = useState([]);
     const [eventResult, setEventResult] = useState([]);
 
     const navigate = useNavigate()
@@ -153,58 +155,157 @@ function LatestEvents() {
             });
             setSelectedJudge(JudgeWithName)
             let AllEventScore = []
-            URL = 'http://localhost:5000/api/events/detail/result/' + selectedEvent._id
+            URL = `${process.env.REACT_APP_BACKEND_API}events/detail/result/` + selectedEvent._id
             axios.get(
                 `${process.env.REACT_APP_BACKEND_API}events/detail/result/${selectedEvent._id}`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) return
                     AllEventScore = response.data
-
                     AllEventScore = AllEventScore.map(result => {
                         const found = allCriteria.find(element => element._id === result.criteria);
                         const percent = selectedEvent.criteria.find(element => element.criteriaId === found._id);
                         return { ...result, criteriaName: found.name, percent: percent.percent }
                     })
-
                     AllEventScore = AllEventScore.map(result => {
                         const found = allJudge.find(element => element._id === result.judge);
                         return { ...result, judgeName: `${found.firstName} ${found.lastName}` }
                     })
+                    console.log('AllEventScore', AllEventScore)
 
-                    let ParticipantsWithScore = []
-                    ParticipantsWithName.forEach(participant => {
-                        let participantRecord = []
+                    //SET RANK PER JUDGE -----------------------------
+                    let JudgeWithRanking = []
+                    JudgeWithName.forEach(judge => {
+                        let judgeRecord = []
                         AllEventScore.forEach(data => {
-                            if (participant._id === data.participant) participantRecord.push(data)
+                            if (judge._id === data.judge) judgeRecord.push(data)
                         })
 
-                        let tempParticipantRecord = participant
-                        tempParticipantRecord.score = participantRecord
-                        ParticipantsWithScore.push(tempParticipantRecord)
+                        let tempjudgeRecord = judge
+                        tempjudgeRecord.score = judgeRecord
+                        JudgeWithRanking.push(tempjudgeRecord)
                     })
+                    console.log('JudgeWithRanking 1: ', JudgeWithRanking);
 
-                    ParticipantsWithScore = ParticipantsWithScore.map(participant => {
-                        console.log('Participant')
-                        let scorePerJudge = []
-                        JudgeWithName.forEach(judge => {
+                    JudgeWithRanking = JudgeWithRanking.map(judge => {
+                        let scorePerParticipant = []
+                        //Get Scores Per Participants
+                        ParticipantsWithName.forEach(participant => {
                             let scoreObject = {}
-                            let scoreFilter = participant.score.filter(judgescore => {
-                                return judgescore.judge === judge._id
+                            let scoreFilter = judge.score.filter(judgescore => {
+                                return judgescore.participant === participant._id
                             })
                             let tempTotal = 0
                             scoreFilter.forEach(data => {
                                 tempTotal += data.score * data.percent / 100
                             })
 
-                            scoreObject.judge = judge
-                            scoreObject.totalScore = tempTotal
-                            scorePerJudge.push(scoreObject)
+                            scoreObject.participant = participant;
+                            scoreObject.totalScore = tempTotal;
+                            scorePerParticipant.push(scoreObject);
                         })
-                        return { ...participant, scoreJudge: scorePerJudge }
+
+                        console.log('scorePerParticipant ', scorePerParticipant)
+                        //Rank Participants based on Score
+                        let rankCount = 1;
+                        let judgeScores = scorePerParticipant.map(score => {
+                            return score.totalScore;
+                        })
+                        judgeScores = [...new Set(judgeScores)];
+                        judgeScores.sort(function (a, b) { return b - a });
+                        console.log('judgeScores', judgeScores)
+                        let rankPerParticipant = [];
+                        judgeScores.forEach(score => {
+                            let participants = scorePerParticipant.filter(element => element.totalScore === score);
+                            let rank;
+                            if (participants.length == 1) {
+                                rank = rankCount;
+                                console.log('participants', participants, participants.length, rank);
+                                rankCount += participants.length;
+                            }
+                            else if (participants.length > 1) {
+                                let tempRankCountOld = rankCount;
+                                rankCount += participants.length;
+                                rank = (rankCount - 1 + tempRankCountOld) / participants.length;
+                                console.log('participants', participants, participants.length, rank);
+                            }
+                            participants.forEach(participant => {
+                                console.log("score", judge.firstName, score, participant, `rank No.: ${rank}`);
+                                let participantRank = {};
+                                participantRank.participant = participant.participant;
+                                participantRank.participantId = participant.participant._id;
+                                participantRank.rank = parseFloat(rank.toFixed(2));
+                                participantRank.score = score;
+                                rankPerParticipant.push(participantRank);
+                            })
+                        })
+
+                        return { ...judge, scorePerParticipant: scorePerParticipant, participantsRank: rankPerParticipant };
                     })
-                    console.log(ParticipantsWithScore)
-                    setEventResult(ParticipantsWithScore)
-                    console.log(eventResult)
+                    console.log('JudgeWithRanking 2: ', JudgeWithRanking);
+
+                    setRankPerJudge(JudgeWithRanking);
+                    // -------------------------------------------------------
+                    //SET SCORE PER PARTICIPANT
+                    let ParticipantsWithRank = []
+                    ParticipantsWithName.forEach(participant => {
+                        let participantRecord = [];
+                        AllEventScore.forEach(data => {
+                            if (participant._id === data.participant) participantRecord.push(data)
+                        })
+
+                        let tempParticipantRecord = participant
+                        tempParticipantRecord.score = participantRecord
+                        ParticipantsWithRank.push(tempParticipantRecord)
+                    })
+                    console.log('ParticipantsWithRank 1: ', ParticipantsWithRank);
+
+                    ParticipantsWithRank = ParticipantsWithRank.map(participant => {
+                        let _rankPerJudge = [];
+                        let tempSumOfRank = 0;
+                        JudgeWithRanking.forEach(judge => {
+                            let ranking = {};
+                            let participantScore = judge.participantsRank.find(element => element.participantId === participant._id)
+                            console.log('participantScore => ', participantScore);
+                            ranking.judge = judge;
+                            ranking.score = participantScore.score;
+                            ranking.rank = participantScore.rank;
+                            tempSumOfRank += ranking.rank;
+                            _rankPerJudge.push(ranking);
+                        })
+                        return { ...participant, rankingPerJudge: _rankPerJudge, sumOfRank: tempSumOfRank }
+                    })
+                    ParticipantsWithRank = ParticipantsWithRank.sort((a, b) => parseFloat(a.sumOfRank) - parseFloat(b.sumOfRank));
+                    console.log('ParticipantsWithRank 2: ', ParticipantsWithRank)
+
+                    let participantsWithFinalRanking = []
+                    let rankCount = 1;
+                    let rankOfParticipants = ParticipantsWithRank.map(score => {
+                        return score.sumOfRank;
+                    })
+                    rankOfParticipants = [...new Set(rankOfParticipants)];
+                    rankOfParticipants.sort(function (a, b) { return a - b });
+                    rankOfParticipants.forEach(score => {
+                        let participants = ParticipantsWithRank.filter(element => element.sumOfRank === score);
+                        let rank;
+                        if (participants.length == 1) {
+                            rank = rankCount;
+                            console.log('participants', participants, participants.length, rank);
+                            rankCount += participants.length;
+                        }
+                        else if (participants.length > 1) {
+                            let tempRankCountOld = rankCount;
+                            rankCount += participants.length;
+                            rank = (rankCount - 1 + tempRankCountOld) / participants.length;
+                            console.log('participants', participants, participants.length, rank);
+                        }
+                        participants.forEach(participant => {
+                            participant.finalRank = parseFloat(rank.toFixed(2));
+                            participantsWithFinalRanking.push(participant);
+                        })
+                        console.log('participantsWith Final Ranking', participantsWithFinalRanking)
+                    })
+                    setEventResult(participantsWithFinalRanking)
+                    // -------------------------------------------------------
                 })
         }
     }, [selectedEvent])
@@ -227,7 +328,6 @@ function LatestEvents() {
     }
 
     const onClickUpdateStatus = (event => {
-        let URL = 'http://localhost:5000/api/events/detail/' + selectedEvent._id
         if (!selectedEvent._id) {
             return toast.error('Sorry. There was an error on your request.');
         }
@@ -268,8 +368,7 @@ function LatestEvents() {
                             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell align="left">First Name</TableCell>
-                                        <TableCell align="left">Judge Scores</TableCell>
+                                        <TableCell align="left">Participant Name</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -278,15 +377,14 @@ function LatestEvents() {
                                             key={row._id}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-
                                             <TableCell align="left">{row.name}</TableCell>
-                                            {row.scoreJudge.map((scoreJudge) => (
-                                                <TableCell key={scoreJudge.judge._id} align="right">
+                                            {row.rankingPerJudge.map((rankingPerJudge) => (
+                                                <TableCell key={rankingPerJudge.judge._id} align="right">
                                                     <TextField
-                                                        name={scoreJudge._id}
-                                                        label={`${scoreJudge.judge.firstName} ${scoreJudge.judge.lastName}`}
-                                                        value={scoreJudge.totalScore}
-                                                        type="number"
+                                                        name={rankingPerJudge._id}
+                                                        label={`${rankingPerJudge.judge.firstName} ${rankingPerJudge.judge.lastName}`}
+                                                        value={rankingPerJudge.rank}
+                                                        // type="number"
                                                         inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
                                                         InputLabelProps={{
                                                             shrink: true,
@@ -296,12 +394,108 @@ function LatestEvents() {
                                                     />
                                                 </TableCell>
                                             ))}
-
+                                            <TableCell align="right">
+                                                <TextField
+                                                    label='Total Rank Sum'
+                                                    value={row.sumOfRank}
+                                                    // type="number"
+                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                    InputLabelProps={{
+                                                        shrink: true,
+                                                    }}
+                                                    variant="filled"
+                                                    readOnly
+                                                />
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <TextField
+                                                    label='Final Ranking'
+                                                    value={row.finalRank}
+                                                    // type="number"
+                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                    InputLabelProps={{
+                                                        shrink: true,
+                                                    }}
+                                                    variant="filled"
+                                                    readOnly
+                                                />
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         </TableContainer>
+
+                        {/* TABLE FOR PARTICIPANT RANK PER JUDGE */}
+                        <Divider />
+                        <h3>Participants Rank per Judge:</h3>
+                        {rankPerJudge.map((judge) => (
+                            // <h4></h4>
+                            <div key={judge._id}>
+                                <h4> Judge: {judge.firstName} {judge.lastName}</h4>
+                                < TableContainer component={Paper} >
+                                    <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell align="left"></TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {judge.participantsRank.map((participant) => (
+                                                <TableRow
+                                                    key={participant.participant._id}
+                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                >
+                                                    <TableCell align="left">
+                                                        {participant.participant.name}
+                                                    </TableCell>
+                                                    {/* {participant.participant.score.map((scorePerCategory) => (
+                                                        <TableCell align="right">
+                                                            <TextField
+                                                                label={scorePerCategory.criteriaName}
+                                                                value={scorePerCategory.score}
+                                                                inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                                InputLabelProps={{
+                                                                    shrink: true,
+                                                                }}
+                                                                variant="outlined"
+                                                                readOnly
+                                                            />
+                                                        </TableCell>
+                                                    ))} */}
+                                                    <TableCell align="right">
+                                                        <TextField
+                                                            label='Total Score'
+                                                            value={participant.score}
+                                                            inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                            InputLabelProps={{
+                                                                shrink: true,
+                                                            }}
+                                                            variant="outlined"
+                                                            readOnly
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <TextField
+                                                            label='Rank'
+                                                            value={participant.rank}
+                                                            inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                            InputLabelProps={{
+                                                                shrink: true,
+                                                            }}
+                                                            variant="filled"
+                                                            readOnly
+                                                        />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                                <Divider />
+                            </div>
+                        ))}
+
                         <Button onClick={() => setResultModal(false)} variant='outlined' color='error'>Close Result</Button>
                         <Button startIcon={<Print />} variant='contained' color='success'>Print Result</Button>
                     </Box>
@@ -309,6 +503,7 @@ function LatestEvents() {
             </>
         )
     }
+
 
     const ShowEvent = () => {
         return (

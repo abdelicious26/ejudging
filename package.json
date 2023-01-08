@@ -8,8 +8,8 @@
     "server": "nodemon backend/server.js",
     "client": "npm start --prefix frontend",
     "build": "cd frontend && npm run build",
-    "install-client": "cd frontend && npm i react-scripts && npm start",
-    "heroku-postbuild": "npm run install-client && npm run build",
+    "install-client": "cd frontend && npm install && npm start",
+    "heroku-postbuild": "npm install && npm run install-client && npm run build",
     "dev": "concurrently \"npm run server\" \"npm run client\" "
   },
   "author": "",

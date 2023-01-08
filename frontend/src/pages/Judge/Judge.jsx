@@ -6,6 +6,7 @@ import EventDetail from './EventDetail';
 import { format } from "date-fns";
 
 import { styled } from '@mui/material/styles';
+import CircleIcon from '@mui/icons-material/Circle';
 import { Modal, Stack, Paper, Box, Typography, TextField, Button, FormControl, Switch } from '@mui/material';
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -125,6 +126,20 @@ function Judge() {
     }, [selectedEvent])
 
     //@UPDATE Judge Score -------------------------------------------
+    const isEventActive = (isActive) => {
+        if (isActive) {
+            return <>
+
+                <p><CircleIcon color="success" /> Active</p>
+            </>
+        }
+        else {
+            return <>
+                <p><CircleIcon color="error" /> Inactive</p>
+            </>
+        }
+    }
+
     //@ONCHANGE FUNCTIONS
 
     //@ONCLICK FUNCTIONS
@@ -160,7 +175,7 @@ function Judge() {
                 </h1>
             </section>
 
-            <TextField label={'Search Event Name'} id="margin-normal" fullWidth margin="normal" />
+            {/* <TextField label={'Search Event Name'} id="margin-normal" fullWidth margin="normal" /> */}
             <Stack spacing={2}>
                 {allEvents.map((eventRecord) => (
                     <Item key={eventRecord._id}
@@ -170,6 +185,7 @@ function Judge() {
                     >
                         <Box>
                             <FormControl fullWidth>
+                                {isEventActive(eventRecord.IsOnGoing)}
                                 <TextField
                                     label="Event Name"
                                     defaultValue={eventRecord.name}

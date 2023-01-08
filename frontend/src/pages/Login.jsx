@@ -6,6 +6,8 @@ import { toast } from 'react-toastify'
 import { login, reset } from '../features/auth/authSlice'
 import Spinner from '../components/Spinner'
 
+import { Box } from '@mui/material';
+
 function Login() {
     console.log('Login')
     const [formData, setFormData] = useState({
@@ -22,7 +24,7 @@ function Login() {
         (state) => state.auth
     )
     useEffect(() => {
-        
+
         if (isError) {
             toast.error(message)
         }
@@ -56,12 +58,9 @@ function Login() {
     return (
         <>
             <section className='heading'>
-                <h1>
-                    <FaSignInAlt /> eJudging
-                </h1>
-                <p>Saint Francis of Assisi College System</p>
+                <p>E-Judging for Tabulation System of </p>
+                <p>Saint Francis of Assisi College Alabang</p>
             </section>
-
             <section className='form'>
                 <form onSubmit={onSubmit}>
                     <div className='form-group'>
