@@ -87,7 +87,7 @@ function MainPage(props) {
                         <ListItemIcon>
                             <EventIcon />
                         </ListItemIcon>
-                        <ListItemText > Latest Events</ListItemText>
+                        <ListItemText > List of Events</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <Divider />

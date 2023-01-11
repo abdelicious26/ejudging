@@ -129,13 +129,16 @@ function Judge() {
     const isEventActive = (isActive) => {
         if (isActive) {
             return <>
-
-                <p><CircleIcon color="success" /> Active</p>
+                <Box>
+                    <p><CircleIcon color="success" /> Active</p>
+                </Box>
             </>
         }
         else {
             return <>
-                <p><CircleIcon color="error" /> Inactive</p>
+                <Box>
+                    <p><CircleIcon color="error" /> Inactive</p>
+                </Box>
             </>
         }
     }
@@ -199,7 +202,6 @@ function Judge() {
                                     margin="dense"
                                     sx={{ mb: 2 }}
                                 />
-
                                 <TextField
                                     label="Description"
                                     defaultValue={eventRecord.description}
@@ -241,7 +243,7 @@ function Judge() {
                                     margin="dense"
                                     sx={{ mb: 2 }}
                                 />
-                                <div>
+                                {/* <div>
                                     On Going Event?
                                     <Switch
                                         checked={eventRecord.IsOnGoing}
@@ -250,7 +252,7 @@ function Judge() {
                                         color="error"
                                         readOnly
                                     />
-                                </div>
+                                </div> */}
 
                                 <Button sx={{ mt: 1 }} id={eventRecord._id} variant="contained" size="large"
                                     color="error" fullWidth onClick={onClickView}>View</Button>

@@ -8,8 +8,8 @@ const asyncHandler = require('express-async-handler')
 // @desc    Create new Event
 // @access  Protected
 module.exports.create = asyncHandler(async (request, response) => {
-    const { name, description, venue, dateTime } = request.body
-    if (!name || !description || !venue || !dateTime) {
+    const { name, description, venue, dateTime, scoringType } = request.body
+    if (!name || !description || !venue || !dateTime || !scoringType) {
         response.status(400)
         throw new Error('Please add all fields')
     }
@@ -22,7 +22,8 @@ module.exports.create = asyncHandler(async (request, response) => {
         name: name,
         description: description,
         venue: venue,
-        dateTime: dateTime
+        dateTime: dateTime,
+        scoringType: scoringType
     })
     response.status(200).json(event)
 });

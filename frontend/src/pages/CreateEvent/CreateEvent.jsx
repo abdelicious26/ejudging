@@ -8,11 +8,14 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { useTheme, styled } from '@mui/material/styles';
+import { arrayMoveMutable, arrayMoveImmutable } from "array-move";
 import {
-    TextField, Input, Button, InputLabel, Box, OutlinedInput, MenuItem, FormControl, Chip,
-    StepLabel, Step, Stepper, Stack, Paper, Grid, CardContent, Card, CssBaseline, Checkbox, ListItemText
+    TextField, Input, Button, InputLabel, OutlinedInput, MenuItem, FormControl,
+    StepLabel, Step, Stepper, Stack, Paper, Grid, CardContent, Card, CssBaseline, Checkbox,
+    List, ListItem, ListItemIcon, ListItemText, ListItemSecondaryAction, Select
 } from '@mui/material';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import DragHandleIcon from "@mui/icons-material/DragHandle";
+import { Container, Draggable } from "react-smooth-dnd";
 const backend = process.env.BACKEND;
 
 const ITEM_HEIGHT = 48;
@@ -69,12 +72,7 @@ function CreateEvent() {
     const [showCriteria, setShowCriteria] = useState([]);
 
     const [page, setPage] = useState(0);
-    const formTitles = ['Event Info', 'Ranking or Scoring', 'Judges and Participants']
-
-    const RecordType = [
-        { label: "Scoring", value: 'scoring' },
-        { label: "Ranking", value: 'ranking' }
-    ];
+    const formTitles = ['Event Info', 'Criteria', 'Judges', 'Participants']
 
     useEffect(() => {
         axios.get(
@@ -126,6 +124,7 @@ function CreateEvent() {
                     tempCriteriaList.push(CriteriaRecord);
                     tempActiveCriteria.push(element.name)
                 });
+                tempCriteriaList.sort(function (a, b) { return b - a });
                 setGetCriteria(tempCriteriaList);
                 setShowCriteria(tempActiveCriteria);
             })
@@ -181,11 +180,12 @@ function CreateEvent() {
     const [newEvent, setNewEvent] = useState({
         name: '',
         description: '',
-        venue: ''
+        venue: '',
+        scoringType: ''
     });
     const [dateTime, setDateTime] = useState(new Date());
 
-    const { name, description, venue } = newEvent
+    const { name, description, venue, scoringType } = newEvent
 
     //@ONSUBMIT -----------------------------
     const onSubmit = (e) => {
@@ -193,6 +193,10 @@ function CreateEvent() {
         let isError = false;
         if (name === '' || description === '' || venue === '' || dateTime === '') {
             toast.error('Please fill out all the Event Info');
+            isError = true;
+        }
+        if (!scoringType) {
+            toast.error('You did not select Scoring Type');
             isError = true;
         }
         if (selectedCriteria.length === 0) {
@@ -216,14 +220,16 @@ function CreateEvent() {
                     name: name,
                     description: description,
                     venue: venue,
-                    dateTime: dateTime
+                    dateTime: dateTime,
+                    scoringType: scoringType
                 },
                 { headers: { "Authorization": `Bearer ${token}` } })
                 .then((response) => {
                     setNewEvent({
                         name: '',
                         description: '',
-                        venue: ''
+                        venue: '',
+                        scoringType: ''
                     })
 
                     //@SAVING JUDGE ON DATABASE
@@ -234,9 +240,6 @@ function CreateEvent() {
                                 userId: judge
                             },
                             { headers: { "Authorization": `Bearer ${token}` } })
-                            .then((save) => {
-                                toast.success('Judge Saved')
-                            })
                             .catch((error) => {
                                 console.log(error)
                             })
@@ -250,9 +253,6 @@ function CreateEvent() {
                                 participantId: participant
                             },
                             { headers: { "Authorization": `Bearer ${token}` } })
-                            .then((save) => {
-                                toast.success('Participants Saved')
-                            })
                             .catch((error) => {
                                 console.log(error)
                             })
@@ -267,9 +267,6 @@ function CreateEvent() {
                                 percent: parseInt(criteria.percent)
                             },
                             { headers: { "Authorization": `Bearer ${token}` } })
-                            .then((save) => {
-                                toast.success('Criteria Saved')
-                            })
                             .catch((error) => {
                                 console.log(error)
                             })
@@ -292,6 +289,8 @@ function CreateEvent() {
             ...prevState,
             [event.target.name]: event.target.value,
         }))
+        console.log('New Event', newEvent);
+        console.log('Event => ', event.target.value);
     }
 
     const onChangeScore = (event) => {
@@ -323,7 +322,9 @@ function CreateEvent() {
             // On autofill we get a stringified value.
             typeof value === 'string' ? value.split(',') : value,
         );
+        console.log('SELECTED PARTICIPANT => ', JSON.stringify(selectedParticipant));
     };
+
     const handleChangeCriteria = (event) => {
         const {
             target: { value },
@@ -334,6 +335,20 @@ function CreateEvent() {
         );
     };
 
+    const onDropCriteria = ({ removedIndex, addedIndex }) => {
+        console.log({ removedIndex, addedIndex });
+        setSelectedCriteria(items => arrayMoveImmutable(items, removedIndex, addedIndex));
+    };
+
+    const onDropJudge = ({ removedIndex, addedIndex }) => {
+        console.log({ removedIndex, addedIndex });
+        setSelectedJudge(items => arrayMoveImmutable(items, removedIndex, addedIndex));
+    };
+
+    const onDropParticipant = ({ removedIndex, addedIndex }) => {
+        console.log({ removedIndex, addedIndex });
+        setSelectedParticipant(items => arrayMoveImmutable(items, removedIndex, addedIndex));
+    };
 
     //@FORM PAGES -----------------------------
     const FormPages = () => {
@@ -400,29 +415,49 @@ function CreateEvent() {
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <Item>
-                                <div>
+                                <FormControl sx={{ m: 1, minWidth: 180 }}>
+                                    <InputLabel id="scoringType-label">Scoring Type</InputLabel>
+                                    <Select
+                                        labelId="scoringType-label"
+                                        id="scoringType"
+                                        name="scoringType"
+                                        autoWidth
+                                        value={scoringType}
+                                        onChange={onChange}
+                                        label="Scoring Type"
+                                    >
+                                        <MenuItem value=""><em>None</em></MenuItem>
+                                        <MenuItem value='Ranking'>Ranking</MenuItem>
+                                        <MenuItem value='Rating'>Rating</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Item>
+                        </Grid>
 
-                                    <FormControl sx={{ m: 1, width: 400 }}>
-                                        <InputLabel id="demo-multiple-chip-label">Criteria</InputLabel>
-                                        <Select
-                                            labelId="demo-multiple-checkbox-label"
-                                            id="demo-multiple-checkbox"
-                                            multiple
-                                            value={selectedCriteria}
-                                            onChange={handleChangeCriteria}
-                                            input={<OutlinedInput label="Tag" />}
-                                            renderValue={(selected) => selected.join(', ')}
-                                            MenuProps={MenuProps}
-                                        >
-                                            {showCriteria.map((name) => (
-                                                <MenuItem key={name} value={name} style={getStyles(name, selectedCriteria, theme)}>
-                                                    <Checkbox checked={selectedCriteria.indexOf(name) > -1} />
-                                                    <ListItemText primary={name} />
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </div>
+                        <Grid item xs={12}>
+                            <Item>
+                                <FormControl sx={{ m: 1, width: 400 }}>
+                                    <InputLabel id="demo-multiple-chip-label">Criteria</InputLabel>
+                                    <Select
+                                        labelId="demo-multiple-checkbox-label"
+                                        id="demo-multiple-checkbox"
+                                        multiple
+                                        value={selectedCriteria}
+                                        onChange={handleChangeCriteria}
+                                        input={<OutlinedInput label="Tag" />}
+                                        renderValue={(selected) => selected.join(', ')}
+                                        MenuProps={MenuProps}
+                                    >
+                                        {showCriteria.map((name) => (
+                                            <MenuItem key={name} value={name} style={getStyles(name, selectedCriteria, theme)}>
+                                                <Checkbox checked={selectedCriteria.indexOf(name) > -1} />
+                                                <ListItemText primary={name} />
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+
+                                </FormControl>
+                                <Button hidden={true} variant="contained">Add</Button>
                             </Item>
                         </Grid>
                         <Grid item xs={12}>
@@ -460,6 +495,32 @@ function CreateEvent() {
                                             }
                                         </tbody>
                                     </table>
+                                    <List>
+                                        <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onDropCriteria}>
+                                            {saveCriteria.map((criteria) => (
+                                                <Draggable key={criteria.id}>
+                                                    <ListItem>
+                                                        <ListItemText primary={criteria.name} />
+                                                        <Input
+                                                            type='number'
+                                                            id='venue'
+                                                            name={criteria.name}
+                                                            fullWidth
+                                                            value={criteria.percent}
+                                                            onChange={onChangeScore}
+                                                            variant="filled"
+                                                            required
+                                                        />
+                                                        <ListItemSecondaryAction>
+                                                            <ListItemIcon className="drag-handle">
+                                                                <DragHandleIcon />
+                                                            </ListItemIcon>
+                                                        </ListItemSecondaryAction>
+                                                    </ListItem>
+                                                </Draggable>
+                                            ))}
+                                        </Container>
+                                    </List>
                                 </div>
                             </Item>
                         </Grid>
@@ -471,117 +532,99 @@ function CreateEvent() {
             return (
                 <div>
                     <section>
-                        <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <Item>
-                                    {/* JUDGES */}
-                                    <Card variant="outlined" sx={{ minWidth: 275 }}>
-                                        <CardContent>
-                                            <div>
-                                                <FormControl sx={{ m: 1, width: 400 }}>
-                                                    <InputLabel id="demo-multiple-chip-label">Select Judges</InputLabel>
-                                                    {/* <Select
-                                                        labelId="demo-multiple-chip-label"
-                                                        id="demo-multiple-chip"
-                                                        multiple
-                                                        value={selectedJudge}
-                                                        onChange={handleChangeJudge}
-                                                        input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
-                                                        renderValue={(selected) => selected.join(', ')}
-                                                        MenuProps={MenuProps}
-                                                    >
-                                                        {showJudge.map((name) => (
-                                                            <MenuItem
-                                                                key={name}
-                                                                value={name}
-                                                                style={getStyles(name, selectedJudge, theme)}
-                                                            >
-                                                                {name}
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select> */}
-                                                    <Select
-                                                        labelId="demo-multiple-checkbox-label"
-                                                        id="demo-multiple-checkbox"
-                                                        multiple
-                                                        value={selectedJudge}
-                                                        onChange={handleChangeJudge}
-                                                        input={<OutlinedInput label="Tag" />}
-                                                        renderValue={(selected) => selected.join(', ')}
-                                                        MenuProps={MenuProps}
-                                                    >
-                                                        {showJudge.map((name) => (
-                                                            <MenuItem key={name} value={name} style={getStyles(name, selectedJudge, theme)}>
-                                                                <Checkbox checked={selectedJudge.indexOf(name) > -1} />
-                                                                <ListItemText primary={name} />
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                </FormControl>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </Item>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <Item>
-                                    {/* PARTICIPANTS */}
-                                    <Card variant="outlined" sx={{ minWidth: 275 }}>
-                                        <CardContent>
-                                            <div>
-                                                <FormControl sx={{ m: 1, width: 400 }}>
-                                                    <InputLabel id="demo-multiple-chip-label">Participants</InputLabel>
-                                                    {/* <Select
-                                                        labelId="demo-multiple-chip-label"
-                                                        id="demo-multiple-chip"
-                                                        multiple
-                                                        value={selectedParticipant}
-                                                        onChange={handleChangeParticipant}
-                                                        input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
-                                                        renderValue={(selected) => (
-                                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                                {selected.map((value) => (
-                                                                    <Chip key={value} label={value} />
-                                                                ))}
-                                                            </Box>
-                                                        )}
-                                                        MenuProps={MenuProps}
-                                                    >
-                                                        {showParticipant.map((name) => (
-                                                            <MenuItem
-                                                                key={name}
-                                                                value={name}
-                                                                style={getStyles(name, selectedParticipant, theme)}
-                                                            >
-                                                                {name}
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select> */}
+                        {/* JUDGES */}
+                        <Card variant="outlined" sx={{ minWidth: 275 }}>
+                            <CardContent>
+                                <FormControl sx={{ m: 1, width: 400 }}>
+                                    <InputLabel id="demo-multiple-chip-label">Select Judges</InputLabel>
+                                    <Select
+                                        labelId="demo-multiple-checkbox-label"
+                                        id="demo-multiple-checkbox"
+                                        multiple
+                                        value={selectedJudge}
+                                        onChange={handleChangeJudge}
+                                        input={<OutlinedInput label="Tag" />}
+                                        renderValue={(selected) => selected.join(', ')}
+                                        MenuProps={MenuProps}
+                                    >
+                                        {showJudge.map((name) => (
+                                            <MenuItem key={name} value={name} style={getStyles(name, selectedJudge, theme)}>
+                                                <Checkbox checked={selectedJudge.indexOf(name) > -1} />
+                                                <ListItemText primary={name} />
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                                <List>
+                                    <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onDropJudge}>
+                                        {selectedJudge.map((judge) => (
+                                            <Draggable key={judge}>
+                                                <ListItem>
+                                                    <ListItemText primary={judge} />
+                                                    <ListItemSecondaryAction>
+                                                        <ListItemIcon className="drag-handle">
+                                                            <DragHandleIcon />
+                                                        </ListItemIcon>
+                                                    </ListItemSecondaryAction>
+                                                </ListItem>
+                                            </Draggable>
+                                        ))}
+                                    </Container>
+                                </List>
+                            </CardContent>
+                        </Card>
+                    </section>
+                </div>
+            )
+        }
 
-                                                    <Select
-                                                        labelId="demo-multiple-checkbox-label"
-                                                        id="demo-multiple-checkbox"
-                                                        multiple
-                                                        value={selectedParticipant}
-                                                        onChange={handleChangeParticipant}
-                                                        input={<OutlinedInput label="Tag" />}
-                                                        renderValue={(selected) => selected.join(', ')}
-                                                        MenuProps={MenuProps}
-                                                    >
-                                                        {showParticipant.map((name) => (
-                                                            <MenuItem key={name} value={name} style={getStyles(name, selectedParticipant, theme)}>
-                                                                <Checkbox checked={selectedParticipant.indexOf(name) > -1} />
-                                                                <ListItemText primary={name} />
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                </FormControl>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </Item>
-                            </Grid>
-                        </Grid>
+        else if (page === 3) {
+            return (
+                <div>
+                    <section>
+                        {/* PARTICIPANTS */}
+                        <Card variant="outlined" sx={{ minWidth: 275 }}>
+                            <CardContent>
+                                <div>
+                                    <FormControl sx={{ m: 1, width: 400 }}>
+                                        <InputLabel id="demo-multiple-chip-label">Participants</InputLabel>
+                                        <Select
+                                            labelId="demo-multiple-checkbox-label"
+                                            id="demo-multiple-checkbox"
+                                            multiple
+                                            value={selectedParticipant}
+                                            onChange={handleChangeParticipant}
+                                            input={<OutlinedInput label="Tag" />}
+                                            renderValue={(selected) => selected.join(', ')}
+                                            MenuProps={MenuProps}
+                                        >
+                                            {showParticipant.map((name) => (
+                                                <MenuItem key={name} value={name} style={getStyles(name, selectedParticipant, theme)}>
+                                                    <Checkbox checked={selectedParticipant.indexOf(name) > -1} />
+                                                    <ListItemText primary={name} />
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    <List>
+                                        <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onDropParticipant}>
+                                            {selectedParticipant.map((participant) => (
+                                                <Draggable key={participant}>
+                                                    <ListItem>
+                                                        <ListItemText primary={participant} />
+                                                        <ListItemSecondaryAction>
+                                                            <ListItemIcon className="drag-handle">
+                                                                <DragHandleIcon />
+                                                            </ListItemIcon>
+                                                        </ListItemSecondaryAction>
+                                                    </ListItem>
+                                                </Draggable>
+                                            ))}
+                                        </Container>
+                                    </List>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </section>
                 </div>
             )
@@ -600,7 +643,27 @@ function CreateEvent() {
                 </section>
                 <Stepper activeStep={[page + 1]}>
                     {formTitles.map((label) => (
-                        <Step key={label}>
+                        <Step key={label}
+                            sx={{
+                                '& .MuiStepLabel-root .Mui-completed': {
+                                    color: 'red', // circle color (COMPLETED)
+                                },
+                                '& .MuiStepLabel-label.Mui-completed.MuiStepLabel-alternativeLabel':
+                                {
+                                    color: 'grey.500', // Just text label (COMPLETED)
+                                },
+                                '& .MuiStepLabel-root .Mui-active': {
+                                    color: 'secondary.main', // circle color (ACTIVE)
+                                },
+                                '& .MuiStepLabel-label.Mui-active.MuiStepLabel-alternativeLabel':
+                                {
+                                    color: 'common.white', // Just text label (ACTIVE)
+                                },
+                                '& .MuiStepLabel-root .Mui-active .MuiStepIcon-text': {
+                                    fill: 'black', // circle's number (ACTIVE)
+                                },
+                            }}
+                        >
                             <StepLabel>{label}</StepLabel>
                         </Step>
                     ))}

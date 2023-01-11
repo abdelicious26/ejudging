@@ -16,6 +16,8 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 import { set } from 'mongoose'
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -201,8 +203,8 @@ function MaintenanceCriteria() {
                                     List of Criteria
                                 </h1>
                                 <Grid container justify="flex-end">
-                                    <Button variant="contained" color="success" size="large" onClick={() => setModal(true)}>
-                                        Add New
+                                    <Button variant="contained" color="success" size="large" onClick={() => setModal(true)} startIcon={<AddIcon />}>
+                                        Add
                                     </Button>
                                 </Grid>
                             </section>
@@ -211,11 +213,10 @@ function MaintenanceCriteria() {
                                 <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell align="right">Name</TableCell>
-                                            <TableCell align="right">Description</TableCell>
-                                            <TableCell align="right">Type</TableCell>
-                                            <TableCell align="right">Active?</TableCell>
-                                            <TableCell align="right">Actions</TableCell>
+                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Name</TableCell>
+                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</TableCell>
+                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Active?</TableCell>
+                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Actions</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -224,10 +225,9 @@ function MaintenanceCriteria() {
                                                 key={row._id}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                <TableCell align="right">{row.name}</TableCell>
-                                                <TableCell align="right">{row.description}</TableCell>
-                                                <TableCell align="right">Category/Criteria</TableCell>
-                                                <TableCell align="right">
+                                                <TableCell align="left">{row.name}</TableCell>
+                                                <TableCell align="left">{row.description}</TableCell>
+                                                <TableCell align="left">
                                                     <input
                                                         type='checkbox'
                                                         className='form-control'
@@ -237,12 +237,12 @@ function MaintenanceCriteria() {
                                                         checked={row.isActive}
                                                         readOnly />
                                                 </TableCell>
-                                                <TableCell align="right">
+                                                <TableCell align="left">
                                                     {/* <button onClick={openRecord} id={row._id} name={row.name} className='btn'>View</button> */}
                                                     {/* <button className='btn' onClick={openRecord} id={row._id} name={row.name}>
                                                         View
                                                     </button> */}
-                                                    <Button variant="contained" onClick={openRecord} id={row._id} name={row.name}> View</Button>
+                                                    <Button variant="contained" color="success" onClick={openRecord} id={row._id} name={row.name} startIcon={<EditIcon />}> Edit</Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))}

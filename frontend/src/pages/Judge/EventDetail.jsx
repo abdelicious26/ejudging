@@ -312,8 +312,8 @@ function EventDetail({ event, participants, criteria, judges }) {
                         <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell align="right">Participant Name</TableCell>
-                                    <TableCell align="right">Criteria</TableCell>
+                                    <TableCell align="left">Participant Name</TableCell>
+                                    <TableCell align="left">Criteria</TableCell>
                                 </TableRow>
                             </TableHead>
 
@@ -323,9 +323,9 @@ function EventDetail({ event, participants, criteria, judges }) {
                                         key={row._id}
                                         sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                     >
-                                        <TableCell align="right">{row.name}</TableCell>
+                                        <TableCell align="left">{row.name}</TableCell>
                                         {row.criteria.map((criteria) => (
-                                            <TableCell key={criteria._id} align="right">
+                                            <TableCell key={criteria._id} align="left">
                                                 <TextField
                                                     id={row._id}
                                                     name={criteria._id}
@@ -344,7 +344,7 @@ function EventDetail({ event, participants, criteria, judges }) {
                                             </TableCell>
                                         ))}
 
-                                        <TableCell align="right">
+                                        <TableCell align="left">
                                             <TextField
                                                 id={row._id}
                                                 name='total'

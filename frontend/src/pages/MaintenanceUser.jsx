@@ -17,6 +17,8 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -321,8 +323,8 @@ function MaintenanceUser() {
                                     Add New
                                 </button> */}
                                 <Grid container justify="flex-end">
-                                    <Button variant="contained" color="success" size="large" onClick={() => setModal(true)}>
-                                        Add New
+                                    <Button variant="contained" color="success" size="large" onClick={() => setModal(true)} startIcon={<AddIcon />}>
+                                        Add
                                     </Button>
                                 </Grid>
                             </section>
@@ -331,12 +333,12 @@ function MaintenanceUser() {
                                 <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell align="right">First Name</TableCell>
-                                            <TableCell align="right">Last Name</TableCell>
-                                            <TableCell align="right">Username</TableCell>
-                                            <TableCell align="right">User Type</TableCell>
-                                            <TableCell align="right">Active?</TableCell>
-                                            <TableCell align="center">Actions</TableCell>
+                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>First Name</TableCell>
+                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Last Name</TableCell>
+                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Username</TableCell>
+                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>User Type</TableCell>
+                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Active?</TableCell>
+                                            <TableCell align="center" sx={{ fontSize: 18, fontWeight: 'bold' }}>Actions</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -345,11 +347,11 @@ function MaintenanceUser() {
                                                 key={row._id}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                <TableCell align="right">{row.firstName}</TableCell>
-                                                <TableCell align="right">{row.lastName}</TableCell>
-                                                <TableCell align="right">{row.username}</TableCell>
-                                                <TableCell align="right">{row.recordType}</TableCell>
-                                                <TableCell align="right">
+                                                <TableCell align="left">{row.firstName}</TableCell>
+                                                <TableCell align="left">{row.lastName}</TableCell>
+                                                <TableCell align="left">{row.username}</TableCell>
+                                                <TableCell align="left">{row.recordType}</TableCell>
+                                                <TableCell align="left">
                                                     <input
                                                         type='checkbox'
                                                         className='form-control'
@@ -360,7 +362,7 @@ function MaintenanceUser() {
                                                         readOnly />
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    <Button variant="contained" onClick={openRecord} id={row._id} name={row.name}> View</Button>
+                                                    <Button variant="contained" color="success" onClick={openRecord} id={row._id} name={row.name} startIcon={<EditIcon />}> Edit</Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))}

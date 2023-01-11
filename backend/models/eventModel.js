@@ -27,6 +27,10 @@ const eventSchema = new mongoose.Schema({
         default: true,
         required: [true, "IsActive field is required"]
     },
+    scoringType: {
+        type: String,
+        required: [true, "Scoring Type field is required"]
+    },
     IsOnGoing: {
         type: Boolean,
         default: false,
@@ -37,6 +41,10 @@ const eventSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             required: true,
             ref: 'Criteria'
+        },
+        orderNumber: {
+            type: Number
+            // required: [true, "Order Number is required"]
         },
         percent: {
             type: Number,
@@ -57,7 +65,11 @@ const eventSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             required: true,
             ref: 'Participant'
-        }
+        },
+        orderNumber: {
+            type: Number
+            // required: [true, "Order Number is required"]
+        },
     }],
 
 }, {
