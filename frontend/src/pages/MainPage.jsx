@@ -72,13 +72,13 @@ function MainPage(props) {
     const adminDrawer = (
         <div>
             <Toolbar />
-            <List >
+            <List>
                 <ListItem disablePadding>
                     <ListItemButton onClick={() => navigate('/')}>
                         <ListItemIcon>
                             <HomeIcon />
                         </ListItemIcon>
-                        <ListItemText> Dashboard</ListItemText>
+                        <ListItemText>Dashboard</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <Divider />
@@ -87,7 +87,7 @@ function MainPage(props) {
                         <ListItemIcon>
                             <EventIcon />
                         </ListItemIcon>
-                        <ListItemText > List of Events</ListItemText>
+                        <ListItemText>List of Events</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <Divider />
@@ -96,7 +96,7 @@ function MainPage(props) {
                         <ListItemIcon>
                             <SettingsSuggestIcon />
                         </ListItemIcon>
-                        <ListItemText> Maintenance</ListItemText>
+                        <ListItemText>Maintenance</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
@@ -104,14 +104,14 @@ function MainPage(props) {
                         <ListItemIcon>
                             <BorderColorIcon />
                         </ListItemIcon>
-                        <ListItemText> Create Event</ListItemText>
+                        <ListItemText>Create Event</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
                     <ListItemButton onClick={() => navigate('/users')}>
                         <ListItemIcon>
                         </ListItemIcon>
-                        <ListItemText disabled> Users</ListItemText>
+                        <ListItemText disabled > Users</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>

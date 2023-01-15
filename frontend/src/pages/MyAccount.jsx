@@ -20,6 +20,12 @@ function MyAccount() {
         recordType: ''
     });
 
+    const [updatePassword, setUpdatePassword] = useState({
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+
     const style = {
         position: 'absolute',
         top: '50%',
@@ -47,12 +53,13 @@ function MyAccount() {
 
     //VARIABLES
     const { _id, firstName, lastName, username, recordType } = updateUser
+    const { oldPassword, newPassword, confirmPassword } = updatePassword
 
 
     //USE EFFECTS
     useEffect(() => {
         axios.get(
-            'http://localhost:5000/api/users/me',
+            `${process.env.REACT_APP_BACKEND_API}users/me`,
             { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                 if (!response) setUpdateUser("No User Record")
                 setUpdateUser(response.data);
@@ -69,18 +76,23 @@ function MyAccount() {
         }))
     }
 
+    const onChangePassword = (e) => {
+        setUpdatePassword((prevState) => ({
+            ...prevState,
+            [e.target.name]: e.target.value,
+        }))
+        console.log('typing password => ', updatePassword);
+    }
+
     //ON SUBMIT FUNCTIONS
     const updateDetails = (e) => {
         e.preventDefault();
-        let URL = 'http://localhost:5000/api/users/update/' + _id;
         if (!_id) {
-            return toast.error('Please select a user record');
+            return toast.error('Please select a user');
         }
-        console.log(URL)
-        console.log('firstname ' + firstName)
         //SAVE UPDATE USER
         axios.put(
-            URL,
+            `${process.env.REACT_APP_BACKEND_API}users/update/${_id}`,
             {
                 firstName: firstName,
                 lastName: lastName,
@@ -105,9 +117,25 @@ function MyAccount() {
 
     const submitChangePassword = (e) => {
         e.preventDefault();
-        if (window.confirm('Are you sure you want to change password?')) {
-            setChangePassword(false);
+        if (newPassword !== confirmPassword) {
+            toast.error('New password and confirm password is not equal.')
         }
+        else if (window.confirm('Are you sure you want to change password?')) {
+            axios.put(
+                `${process.env.REACT_APP_BACKEND_API}users/changepassword/${_id}`,
+                {
+                    oldPassword: oldPassword,
+                    newPassword: newPassword
+                },
+                { headers: { "Authorization": `Bearer ${token}` } })
+                .then((response) => {
+                    toast.success('You have changed your password');
+                })
+                .catch((error) => {
+                    toast.error('Sorry, there was an error. Please make sure your old password is correct.')
+                })
+        }
+        setChangePassword(false);
     }
 
     return (
@@ -219,8 +247,9 @@ function MyAccount() {
                                         className='form-control'
                                         id='oldPassword'
                                         name='oldPassword'
-                                        // value={updateUser.username}
-                                        onChange={onChangeUpdate}
+                                        minlength='8' maxlength='20'
+                                        value={updatePassword.oldPassword}
+                                        onChange={onChangePassword}
                                         required
                                     />
                                 </div>
@@ -231,7 +260,9 @@ function MyAccount() {
                                         className='form-control'
                                         id='newPassword'
                                         name='newPassword'
-                                        // value={updateUser.recordType}
+                                        minlength='8' maxlength='20'
+                                        value={updatePassword.newPassword}
+                                        onChange={onChangePassword}
                                         required
                                     />
                                 </div>
@@ -242,7 +273,9 @@ function MyAccount() {
                                         className='form-control'
                                         id='confirmPassword'
                                         name='confirmPassword'
-                                        // value={updateUser.recordType}
+                                        minlength='8' maxlength='20'
+                                        value={updatePassword.confirmPassword}
+                                        onChange={onChangePassword}
                                         required
                                     />
                                 </div>

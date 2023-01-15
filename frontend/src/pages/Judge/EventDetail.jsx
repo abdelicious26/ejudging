@@ -49,7 +49,8 @@ function EventDetail({ event, participants, criteria, judges }) {
     const [allCriteria, setAllCriteria] = useState(criteria);
     const [participantList, setParticipantList] = useState([]);
     const [selectedParticipant, setSelectedParticipant] = useState([]);
-    const [score, setScore] = useState([])
+    const [myPreviousScore, setMyPreviousScore] = useState([]);
+    const [score, setScore] = useState([]);
     const [open, setOpen] = useState(false);
 
     const navigate = useNavigate()
@@ -90,8 +91,8 @@ function EventDetail({ event, participants, criteria, judges }) {
         ParticipantsWithName.forEach(participant => {
             tempParticipantList.push(participant.name)
         })
-        console.log(tempParticipantList)
         setParticipantList(tempParticipantList)
+
         //@ PARTICIPANT WITH CRITERIA AND SCORE
         const criteriaWithScore = CriteriaWithName.map(criteria => {
             return { ...criteria, score: '' };
@@ -100,7 +101,41 @@ function EventDetail({ event, participants, criteria, judges }) {
             return { ...participant, criteria: criteriaWithScore, total: '', };
         });
 
-        setScore(participantList);
+        console.log('Before Update Score =>', participantList);
+        //@ GET MY PREVIOUS SCORE
+        axios.get(
+            `${process.env.REACT_APP_BACKEND_API}judge/event/score/${selectedEvent._id}`,
+            { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
+                if (!response) {
+                    setMyPreviousScore("No Previous Score Records");
+                }
+                else {
+                    let _tempMyScores = response.data;
+                    console.log('_tempMyScores', _tempMyScores)
+                    //ASSIGN PREVIOUS SCORES TO TABLE
+                    participantList = participantList.map(participant => {
+                        let _tempCriteriaWithScore = participant.criteria.map(criteria => {
+                            const _tempPreviousScore = _tempMyScores.find(element => element.criteria === criteria._id && element.participant === participant._id);
+                            if (_tempPreviousScore)
+                                return { ...criteria, score: _tempPreviousScore.score };
+                            else
+                                return { ...criteria };
+                        })
+                        return { ...participant, criteria: _tempCriteriaWithScore };
+                    })
+                    //CALCULATE TOTAL SCORE FROM PREVIOUS SCORES
+                    participantList = participantList.map(participant => {
+                        let _tempTotal = 0;
+                        participant.criteria.forEach(criteriaScore => {
+                            if (criteriaScore.score) {
+                                _tempTotal += criteriaScore.score * (criteriaScore.percent / 100)
+                            }
+                        })
+                        return { ...participant, total: _tempTotal };
+                    })
+                }
+                setScore(participantList);
+            })
     }, [selectedEvent])
 
     function SimpleDialog(props) {
@@ -176,7 +211,6 @@ function EventDetail({ event, participants, criteria, judges }) {
     //@ONSUBMIT FUNCTIONS
     const onSubmitScore = (event) => {
         event.preventDefault()
-        let URL = 'http://localhost:5000/api/judge/event/' + selectedEvent._id
         if (!selectedEvent._id) {
             return toast.error('You have not selected any event');
         }
@@ -194,7 +228,6 @@ function EventDetail({ event, participants, criteria, judges }) {
         //If it has error
         if (_hasError) {
             toast.error('You can only input score 70-100.');
-            console.log('has error');
         }
         //If all input is valid
         else {
@@ -215,8 +248,6 @@ function EventDetail({ event, participants, criteria, judges }) {
                         })
                 })
             })
-
-            console.log('Score Saved')
             toast.success('Your scores have been saved.');
         }
     }
@@ -227,7 +258,6 @@ function EventDetail({ event, participants, criteria, judges }) {
 
     const handleClose = (value) => {
         setOpen(false);
-        console.log(value)
         setSelectedParticipant(value);
     };
 
@@ -235,6 +265,210 @@ function EventDetail({ event, participants, criteria, judges }) {
         const _date = Date.parse(value);
         return format(_date, "MMMM d, yyyy - h:mma");
     };
+
+    const showScoringComponent = () => {
+        // SHOW SCORING TABLE IF SCORING TYPE IS RATING
+        if (selectedEvent.scoringType === 'Rating') {
+            return (
+                <div>
+                    <form onSubmit={onSubmitScore}>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="left">Participant Name</TableCell>
+                                        <TableCell align="left">Criteria</TableCell>
+                                    </TableRow>
+                                </TableHead>
+
+                                <TableBody>
+                                    {score.map((row) => (
+                                        <TableRow
+                                            key={row._id}
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                        >
+                                            <TableCell align="left">{row.name}</TableCell>
+                                            {row.criteria.map((criteria) => (
+                                                <TableCell key={criteria._id} align="left">
+                                                    <TextField
+                                                        id={row._id}
+                                                        name={criteria._id}
+                                                        label={criteria.name + ' ' + criteria.percent + '%'}
+                                                        defaultValue={criteria.score}
+                                                        onChange={onChangeScore}
+                                                        type="number"
+                                                        inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                        InputLabelProps={{
+                                                            shrink: true,
+                                                        }}
+                                                        variant="outlined"
+                                                        required
+                                                        color="error"
+                                                    />
+                                                </TableCell>
+                                            ))}
+
+                                            <TableCell align="left">
+                                                <TextField
+                                                    id={row._id}
+                                                    name='total'
+                                                    label='TOTAL SCORE'
+                                                    value={row.total}
+                                                    InputLabelProps={{
+                                                        shrink: true,
+                                                    }}
+                                                    readOnly
+                                                    variant="filled"
+                                                    color="error"
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <Button type='submit' variant="contained" color="success" disabled={!selectedEvent.IsOnGoing} fullWidth sx={{ mt: 3 }}>
+                            Save Score
+                        </Button>
+                    </form>
+                </div>
+            )
+        }
+        // SHOW SCORING TABLE IF SCORING TYPE IS RANKING
+        else if (selectedEvent.scoringType === 'Ranking') {
+            return (
+                <div>
+                    <form onSubmit={onSubmitScore}>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="left">Participant Name</TableCell>
+                                        <TableCell align="left">Criteria</TableCell>
+                                    </TableRow>
+                                </TableHead>
+
+                                <TableBody>
+                                    {score.map((row) => (
+                                        <TableRow
+                                            key={row._id}
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                        >
+                                            <TableCell align="left">{row.name}</TableCell>
+                                            {row.criteria.map((criteria) => (
+                                                <TableCell key={criteria._id} align="left">
+                                                    <TextField
+                                                        id={row._id}
+                                                        name={criteria._id}
+                                                        label={criteria.name + ' ' + criteria.percent + '%'}
+                                                        defaultValue={criteria.score}
+                                                        onChange={onChangeScore}
+                                                        type="number"
+                                                        inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                        InputLabelProps={{
+                                                            shrink: true,
+                                                        }}
+                                                        variant="outlined"
+                                                        required
+                                                        color="error"
+                                                    />
+                                                </TableCell>
+                                            ))}
+
+                                            <TableCell align="left">
+                                                <TextField
+                                                    id={row._id}
+                                                    name='total'
+                                                    label='TOTAL SCORE'
+                                                    value={row.total}
+                                                    InputLabelProps={{
+                                                        shrink: true,
+                                                    }}
+                                                    readOnly
+                                                    variant="filled"
+                                                    color="error"
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <Button type='submit' variant="contained" color="success" disabled={!selectedEvent.IsOnGoing} fullWidth sx={{ mt: 3 }}>
+                            Save Score
+                        </Button>
+                    </form>
+                </div>
+            )
+        }
+        else {
+            return (
+                <div>
+                    <form onSubmit={onSubmitScore}>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="left">Participant Name</TableCell>
+                                        <TableCell align="left">Criteria</TableCell>
+                                    </TableRow>
+                                </TableHead>
+
+                                <TableBody>
+                                    {score.map((row) => (
+                                        <TableRow
+                                            key={row._id}
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                        >
+                                            <TableCell align="left">{row.name}</TableCell>
+                                            {row.criteria.map((criteria) => (
+                                                <TableCell key={criteria._id} align="left">
+                                                    <TextField
+                                                        id={row._id}
+                                                        name={criteria._id}
+                                                        label={criteria.name + ' ' + criteria.percent + '%'}
+                                                        value={criteria.score}
+                                                        onChange={onChangeScore}
+                                                        type="number"
+                                                        inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                        InputLabelProps={{
+                                                            shrink: true,
+                                                        }}
+                                                        variant="outlined"
+                                                        required
+                                                        color="error"
+                                                    />
+                                                </TableCell>
+                                            ))}
+
+                                            <TableCell align="left">
+                                                <TextField
+                                                    id={row._id}
+                                                    name='total'
+                                                    label='TOTAL SCORE'
+                                                    value={row.total}
+                                                    InputLabelProps={{
+                                                        shrink: true,
+                                                    }}
+                                                    readOnly
+                                                    variant="filled"
+                                                    color="error"
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <Button type='submit' variant="contained" color="success" disabled={!selectedEvent.IsOnGoing} fullWidth sx={{ mt: 3 }}>
+                            Save Score
+                        </Button>
+                    </form>
+                </div>
+            )
+        }
+    }
+
 
     return (
         <>
@@ -293,80 +527,7 @@ function EventDetail({ event, participants, criteria, judges }) {
             </section>
 
             <section>
-                <SimpleDialog
-                    selectedValue={selectedParticipant}
-                    open={open}
-                    onClose={handleClose}
-                />
-
-                {/* <Button variant="outlined" onClick={handleClickOpen}>
-                        Select a Participant
-                    </Button>
-                    <br />
-                    <Typography variant="subtitle1" component="div">
-                        Selected: {selectedParticipant}
-                    </Typography> */}
-
-                <form onSubmit={onSubmitScore}>
-                    <TableContainer component={Paper}>
-                        <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell align="left">Participant Name</TableCell>
-                                    <TableCell align="left">Criteria</TableCell>
-                                </TableRow>
-                            </TableHead>
-
-                            <TableBody>
-                                {score.map((row) => (
-                                    <TableRow
-                                        key={row._id}
-                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                    >
-                                        <TableCell align="left">{row.name}</TableCell>
-                                        {row.criteria.map((criteria) => (
-                                            <TableCell key={criteria._id} align="left">
-                                                <TextField
-                                                    id={row._id}
-                                                    name={criteria._id}
-                                                    label={criteria.name + ' ' + criteria.percent + '%'}
-                                                    value={criteria.score}
-                                                    onChange={onChangeScore}
-                                                    type="number"
-                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                    InputLabelProps={{
-                                                        shrink: true,
-                                                    }}
-                                                    variant="outlined"
-                                                    required
-                                                    color="error"
-                                                />
-                                            </TableCell>
-                                        ))}
-
-                                        <TableCell align="left">
-                                            <TextField
-                                                id={row._id}
-                                                name='total'
-                                                label='TOTAL SCORE'
-                                                value={row.total}
-                                                InputLabelProps={{
-                                                    shrink: true,
-                                                }}
-                                                readOnly
-                                                variant="filled"
-                                                color="error"
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    <Button type='submit' variant="contained" color="success" disabled={!selectedEvent.IsOnGoing} fullWidth sx={{ mt: 3 }}>
-                        Save Score
-                    </Button>
-                </form>
+                {showScoringComponent()}
             </section>
             {/* </Box> */}
         </>

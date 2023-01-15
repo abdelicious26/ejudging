@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import Spinner from '../components/Spinner'
@@ -27,10 +27,16 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import PreviewIcon from '@mui/icons-material/Preview';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import { Divider } from '@mui/material'
+import Divider from '@mui/material/Divider';
 import { format } from "date-fns";
-
-
+import ReactToPrint from "react-to-print";
+import List from '@mui/material/List';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Checkbox from '@mui/material/Checkbox';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -39,16 +45,7 @@ const Item = styled(Paper)(({ theme }) => ({
     textAlign: 'center',
     color: theme.palette.text.secondary,
 }));
-const customStyles = {
-    content: {
-        top: '50%',
-        left: '50%',
-        right: 'auto',
-        bottom: 'auto',
-        marginRight: '-50%',
-        transform: 'translate(-50%, -50%)',
-    },
-};
+
 const RecordType = [
     { label: "Admin", value: 'admin' },
     { label: "Judge", value: 'judge' }
@@ -94,9 +91,10 @@ function LatestEvents() {
     const [rankPerJudge, setRankPerJudge] = useState([]);
     const [eventResult, setEventResult] = useState([]);
 
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
-    const { user } = useSelector((state) => state.auth)
+    const componentRef = useRef();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { user } = useSelector((state) => state.auth);
     let token;
 
     useEffect(() => {
@@ -331,9 +329,15 @@ function LatestEvents() {
 
     //@ONCLICK FUNCTIONS
     const onClickView = (event) => {
-        setModal(true)
-        const found = allEvents.find(element => element._id === event.target.id);
-        setSelectedEvent(found)
+        const found = allEvents.find(({ _id }) => _id === event.target.id);
+        if (found) {
+            setModal(true)
+            setSelectedEvent(found)
+        }
+    }
+
+    const onClickTest = (event) => {
+        console.log('I am Clicked => ', event, event.target.id);
     }
 
     const onClickEdit = (event) => {
@@ -348,10 +352,20 @@ function LatestEvents() {
         setSelectedEvent(found)
     }
 
+    const onClickPrint = () => {
+        //console.log('print');  
+        let printContents = document.getElementById('printablediv').innerHTML;
+        let originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+    }
+
     const onClickUpdateStatus = (event => {
         if (!selectedEvent._id) {
             return toast.error('Sorry. There was an error on your request.');
         }
+        let _tempCurrentStatus = !selectedEvent.IsOnGoing;
         axios.put(
             `${process.env.REACT_APP_BACKEND_API}events/detail/${selectedEvent._id}`,
             {
@@ -360,12 +374,18 @@ function LatestEvents() {
                 venue: selectedEvent.venue,
                 dateTime: selectedEvent.dateTime,
                 isActive: selectedEvent.isActive,
-                IsOnGoing: selectedEvent.IsOnGoing
+                IsOnGoing: _tempCurrentStatus
             },
             { headers: { "Authorization": `Bearer ${token}` } })
             .then((response) => {
-                console.log('success')
-                toast.success('Update Success');
+                if (_tempCurrentStatus)
+                    toast.success('Activated the Event');
+                else
+                    toast.error('Deactivated the Event');
+                setSelectedEvent((prevState) => ({
+                    ...prevState,
+                    ['IsOnGoing']: _tempCurrentStatus,
+                }))
             })
             .catch((error) => {
                 toast.error(error.response.data);
@@ -392,132 +412,144 @@ function LatestEvents() {
                     aria-labelledby="child-modal-title"
                     aria-describedby="child-modal-description"
                 >
-                    <Box sx={{ ...style, width: '80%', height: '80%' }}>
-                        <h3>Event Name:</h3>
-                        <h2 id="child-modal-title">{selectedEvent.name}</h2>
-                        <TableContainer component={Paper}>
-                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell align="left">Participant Name</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {eventResult.map((row) => (
-                                        <TableRow
-                                            key={row._id}
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                        >
-                                            <TableCell align="left">{row.name}</TableCell>
-                                            {row.rankingPerJudge.map((rankingPerJudge) => (
-                                                <TableCell key={rankingPerJudge.judge._id} align="left">
-                                                    <TextField
-                                                        name={rankingPerJudge._id}
-                                                        label={`${rankingPerJudge.judge.firstName} ${rankingPerJudge.judge.lastName}`}
-                                                        value={rankingPerJudge.rank}
-                                                        // type="number"
-                                                        inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                        InputLabelProps={{
-                                                            shrink: true,
-                                                        }}
-                                                        variant="outlined"
-                                                        readOnly
-                                                    />
-                                                </TableCell>
-                                            ))}
-                                            <TableCell align="left">
-                                                <TextField
-                                                    label='Total Rank Sum'
-                                                    value={row.sumOfRank}
-                                                    // type="number"
-                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                    InputLabelProps={{
-                                                        shrink: true,
-                                                    }}
-                                                    variant="filled"
-                                                    readOnly
-                                                />
-                                            </TableCell>
-                                            <TableCell align="left">
-                                                <TextField
-                                                    label='Final Ranking'
-                                                    value={row.finalRank}
-                                                    // type="number"
-                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                    InputLabelProps={{
-                                                        shrink: true,
-                                                    }}
-                                                    variant="filled"
-                                                    readOnly
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-
-                        {/* TABLE FOR PARTICIPANT RANK PER JUDGE */}
-                        <Divider />
-                        <h3>Participants Rank per Judge:</h3>
-                        {rankPerJudge.map((judge) => (
-                            // <h4></h4>
-                            <div key={judge._id}>
-                                <h4> Judge: {judge.firstName} {judge.lastName}</h4>
-                                < TableContainer component={Paper} >
-                                    <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align="left"></TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {judge.participantsRank.map((participant) => (
-                                                <TableRow
-                                                    key={participant.participant._id}
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                >
-                                                    <TableCell align="left">
-                                                        {participant.participant.name}
-                                                    </TableCell>
-                                                    <TableCell align="left">
-                                                        <TextField
-                                                            label='Total Score'
-                                                            value={participant.score}
-                                                            inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                            InputLabelProps={{
-                                                                shrink: true,
-                                                            }}
-                                                            variant="outlined"
-                                                            readOnly
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell align="left">
-                                                        <TextField
-                                                            label='Rank'
-                                                            value={participant.rank}
-                                                            inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                            InputLabelProps={{
-                                                                shrink: true,
-                                                            }}
-                                                            variant="filled"
-                                                            readOnly
-                                                        />
-                                                    </TableCell>
+                    <div>
+                        <Box sx={{ ...style, width: '85%', height: '85%' }}>
+                            <Box id='printablediv' ref={componentRef} class='printable'>
+                                <Box sx={{ border: 0, borderRadius: '8px', mb: 3 }}>
+                                    <h3>Event Name:</h3>
+                                    <h2 id="child-modal-title">{selectedEvent.name}</h2>
+                                    <TableContainer component={Paper}>
+                                        <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell align="left">Participant Name</TableCell>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                                <Divider />
-                            </div>
-                        ))}
-                        <Box sx={{ mt: 2 }}>
+                                            </TableHead>
+                                            <TableBody>
+                                                {eventResult.map((row) => (
+                                                    <TableRow
+                                                        key={row._id}
+                                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                    >
+                                                        <TableCell align="left">{row.name}</TableCell>
+                                                        {/* {row.rankingPerJudge.map((rankingPerJudge) => (
+                                                            <TableCell key={rankingPerJudge.judge._id} align="left">
+                                                                <TextField
+                                                                    name={rankingPerJudge._id}
+                                                                    label={`${rankingPerJudge.judge.firstName} ${rankingPerJudge.judge.lastName}`}
+                                                                    value={rankingPerJudge.rank}
+                                                                    // type="number"
+                                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                                    InputLabelProps={{
+                                                                        shrink: true,
+                                                                    }}
+                                                                    variant="outlined"
+                                                                    readOnly
+                                                                />
+                                                            </TableCell>
+                                                        ))} */}
+                                                        <TableCell align="left">
+                                                            <TextField
+                                                                label='Total Points'
+                                                                value={row.sumOfRank}
+                                                                // type="number"
+                                                                inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                                InputLabelProps={{
+                                                                    shrink: true,
+                                                                }}
+                                                                variant="filled"
+                                                                readOnly
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell align="left">
+                                                            <TextField
+                                                                label='Final Ranking'
+                                                                value={row.finalRank}
+                                                                // type="number"
+                                                                inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                                InputLabelProps={{
+                                                                    shrink: true,
+                                                                }}
+                                                                variant="filled"
+                                                                readOnly
+                                                            />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
 
-                            <Button onClick={() => setResultModal(false)} variant='outlined' color='error' sx={{ mr: 1 }}>Close Result</Button>
-                            <Button startIcon={<Print />} variant='contained' color='success'>Print Result</Button>
+                                </Box>
+                                {/* TABLE FOR PARTICIPANT RANK PER JUDGE */}
+                                <Divider />
+                                <h3>Participants Rank per Judge:</h3>
+                                {rankPerJudge.map((judge) => (
+                                    // <h4></h4>
+                                    <div key={judge._id}>
+                                        <h4> Judge: {judge.firstName} {judge.lastName}</h4>
+                                        < TableContainer component={Paper} >
+                                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell align="left"></TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {judge.participantsRank.map((participant) => (
+                                                        <TableRow
+                                                            key={participant.participant._id}
+                                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                        >
+                                                            <TableCell align="left">
+                                                                {participant.participant.name}
+                                                            </TableCell>
+                                                            <TableCell align="left">
+                                                                <TextField
+                                                                    label='Total Score'
+                                                                    value={participant.score}
+                                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                                    InputLabelProps={{
+                                                                        shrink: true,
+                                                                    }}
+                                                                    variant="outlined"
+                                                                    readOnly
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell align="left">
+                                                                <TextField
+                                                                    label='Rank'
+                                                                    value={participant.rank}
+                                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
+                                                                    InputLabelProps={{
+                                                                        shrink: true,
+                                                                    }}
+                                                                    variant="filled"
+                                                                    readOnly
+                                                                />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                        <Divider />
+                                    </div>
+                                ))}
+                            </Box>
+
+                            <Box sx={{ mt: 2 }}>
+                                <Button onClick={() => setResultModal(false)} variant='outlined' color='error' sx={{ mr: 1 }}>Close Result</Button>
+                                {/* <Button startIcon={<Print />} variant='contained' color='success' onClick={onClickPrint}>Print Result</Button> */}
+
+                                <ReactToPrint
+                                    trigger={() => <Button startIcon={<Print />} variant='contained' color='success'>Print Result</Button>}
+                                    content={() => componentRef.current}
+                                />
+                            </Box>
+
                         </Box>
-                    </Box>
+                    </div>
                 </ModalUI>
             </>
         )
@@ -581,12 +613,18 @@ function LatestEvents() {
                                     checked={selectedEvent.IsOnGoing}
                                     inputProps={{ 'aria-label': 'controlled' }}
                                     name='IsOnGoing'
-                                    onChange={onChangeCheckbox}
                                 />
                             </div>
-                            <Button onClick={onClickUpdateStatus} variant="contained" color="success" sx={{ mr: 1 }}>
-                                Update Event Status
-                            </Button>
+
+                            {selectedEvent.IsOnGoing ? (
+                                <Button onClick={onClickUpdateStatus} variant="contained" color="error" sx={{ mr: 1 }}>
+                                    Deactivate The Event
+                                </Button>
+                            ) : (
+                                <Button onClick={onClickUpdateStatus} variant="contained" color="success" sx={{ mr: 1 }}>
+                                    Activate The Event
+                                </Button>
+                            )}
                             <Button onClick={() => { setResultModal(true) }} variant="outlined" color="success" startIcon={<PreviewIcon />}>
                                 View Result
                             </Button>
@@ -710,7 +748,7 @@ function LatestEvents() {
                             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Event Name</TableCell>
+                                        <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }} >Event Name</TableCell>
                                         <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</TableCell>
                                         <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Venue</TableCell>
                                         <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Scoring Type</TableCell>
@@ -725,10 +763,6 @@ function LatestEvents() {
                                             key={row._id}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            {/* <TableCell component="th" scope="row">
-                                                    {row.name}
-                                                </TableCell> */}
-
                                             <TableCell align="left">{row.name}</TableCell>
                                             <TableCell align="left">{row.description}</TableCell>
                                             <TableCell align="left">{row.venue}</TableCell>
@@ -744,13 +778,16 @@ function LatestEvents() {
                                                     readOnly />
                                             </TableCell>
                                             <TableCell>
-                                                <Button id={row._id} variant="contained" onClick={onClickView} color="primary" sx={{ mr: .5, mt: .5, minWidth: '10px' }}>
-                                                    <VisibilityIcon /> <Icon color="primary">add_circle</Icon>
+                                                {/* <Button id={row._id} name={row.name} variant="contained" onClick={(event) => { handleClick(event, cellValues); }} color="primary" sx={{ mr: .5, mt: .5 }}>
+                                                    <VisibilityIcon />
+                                                </Button> */}
+                                                <Button id={row._id} name={row.name} variant="contained" onClick={onClickView} color="primary" sx={{ mr: .5, mt: .5 }}>
+                                                    <VisibilityIcon />
                                                 </Button>
-                                                <Button id={row._id} variant="contained" onClick={onClickEdit} color="success" sx={{ mr: .5, mt: .5, minWidth: '10px' }}>
+                                                <Button id={row._id} name={row.name} variant="contained" onClick={onClickEdit} color="success" sx={{ mr: .5, mt: .5 }}>
                                                     <EditIcon />
                                                 </Button>
-                                                <Button id={row._id} variant="contained" onClick={onClickDelete} color="error" sx={{ mr: .5, mt: .5, minWidth: '10px' }}>
+                                                <Button id={row._id} name={row.name} variant="contained" onClick={onClickDelete} color="error" sx={{ mr: .5, mt: .5 }}>
                                                     <DeleteIcon />
                                                 </Button>
                                             </TableCell>

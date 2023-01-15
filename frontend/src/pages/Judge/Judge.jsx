@@ -84,13 +84,13 @@ function Judge() {
             axios.get(
                 `${process.env.REACT_APP_BACKEND_API}participant/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                    if (!response) setAllParticipants("No User Records")
+                    if (!response) setAllParticipants("No Participant Records")
                     setAllParticipants(response.data);
                 })
             axios.get(
                 `${process.env.REACT_APP_BACKEND_API}criteria/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                    if (!response) setAllCriteria("No User Records")
+                    if (!response) setAllCriteria("No Criteria Records")
                     setAllCriteria(response.data);
                 })
         }
@@ -98,7 +98,6 @@ function Judge() {
 
     useEffect(() => {
         if (viewEvent) {
-
             //@ GET CRITERIA WITH NAME
             let CriteriaWithName = []
             selectedEvent.criteria.forEach(response => {
@@ -165,7 +164,6 @@ function Judge() {
 
     const handleCloseModal = (value) => {
         if (window.confirm('Are you sure you want to close? any unsaved changes will not be saved.')) {
-            console.log('closing the modal');
             setModal(false);
         }
     };
@@ -219,6 +217,20 @@ function Judge() {
                                 <TextField
                                     label="Venue"
                                     defaultValue={eventRecord.venue}
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    // fullWidth 
+                                    variant="outlined"
+                                    size="medium"
+                                    color="error"
+                                    margin="dense"
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <TextField
+                                    label="Scoring Type"
+                                    defaultValue={eventRecord.scoringType}
                                     InputProps={{
                                         readOnly: true,
                                     }}

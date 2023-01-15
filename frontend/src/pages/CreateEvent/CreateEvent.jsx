@@ -12,7 +12,7 @@ import { arrayMoveMutable, arrayMoveImmutable } from "array-move";
 import {
     TextField, Input, Button, InputLabel, OutlinedInput, MenuItem, FormControl,
     StepLabel, Step, Stepper, Stack, Paper, Grid, CardContent, Card, CssBaseline, Checkbox,
-    List, ListItem, ListItemIcon, ListItemText, ListItemSecondaryAction, Select
+    List, ListItem, ListItemIcon, ListItemText, ListItemSecondaryAction, Select, Box
 } from '@mui/material';
 import DragHandleIcon from "@mui/icons-material/DragHandle";
 import { Container, Draggable } from "react-smooth-dnd";
@@ -434,96 +434,108 @@ function CreateEvent() {
                             </Item>
                         </Grid>
 
-                        <Grid item xs={12}>
-                            <Item>
-                                <FormControl sx={{ m: 1, width: 400 }}>
-                                    <InputLabel id="demo-multiple-chip-label">Criteria</InputLabel>
-                                    <Select
-                                        labelId="demo-multiple-checkbox-label"
-                                        id="demo-multiple-checkbox"
-                                        multiple
-                                        value={selectedCriteria}
-                                        onChange={handleChangeCriteria}
-                                        input={<OutlinedInput label="Tag" />}
-                                        renderValue={(selected) => selected.join(', ')}
-                                        MenuProps={MenuProps}
-                                    >
-                                        {showCriteria.map((name) => (
-                                            <MenuItem key={name} value={name} style={getStyles(name, selectedCriteria, theme)}>
-                                                <Checkbox checked={selectedCriteria.indexOf(name) > -1} />
-                                                <ListItemText primary={name} />
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
+                        {scoringType ? (
+                            <>
+                                <Grid item xs={12}>
+                                    <Item>
+                                        <FormControl sx={{ m: 1, width: 400 }}>
+                                            <InputLabel id="demo-multiple-chip-label">Criteria</InputLabel>
+                                            <Select
+                                                labelId="demo-multiple-checkbox-label"
+                                                id="demo-multiple-checkbox"
+                                                multiple
+                                                value={selectedCriteria}
+                                                onChange={handleChangeCriteria}
+                                                input={<OutlinedInput label="Tag" />}
+                                                renderValue={(selected) => selected.join(', ')}
+                                                MenuProps={MenuProps}
+                                            >
+                                                {showCriteria.map((name) => (
+                                                    <MenuItem key={name} value={name} style={getStyles(name, selectedCriteria, theme)}>
+                                                        <Checkbox checked={selectedCriteria.indexOf(name) > -1} />
+                                                        <ListItemText primary={name} />
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
 
-                                </FormControl>
-                                <Button hidden={true} variant="contained">Add</Button>
-                            </Item>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Item>
-                                <div className='form-group'>
-                                    <InputLabel>Selected Criteria</InputLabel>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Criteria Name</th>
-                                                <th>Ratings (%)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {
-                                                saveCriteria.map(data => {
-                                                    return (
-                                                        <tr key={data.id}>
-                                                            <td>{data.name}</td>
-                                                            <td>
-                                                                <Input
-                                                                    type='number'
-                                                                    id='venue'
-                                                                    name={data.name}
-                                                                    fullWidth
-                                                                    value={data.percent}
-                                                                    onChange={onChangeScore}
-                                                                    variant="filled"
-                                                                    required
-                                                                />
-                                                            </td>
+                                        </FormControl>
+                                        <Button hidden={true} variant="contained">Add</Button>
+                                    </Item>
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Item>
+                                        <div className='form-group'>
+                                            <Box sx={{
+                                                border: 1,
+                                                borderRadius: '12px',
+                                            }}>
+                                                <InputLabel sx={{ fontSize: 18, fontWeight: 'bold' }}>Selected Criteria</InputLabel>
+                                                <List>
+                                                    <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onDropCriteria}>
+                                                        {saveCriteria.map((criteria) => (
+                                                            <Draggable key={criteria.id}>
+                                                                <ListItem>
+                                                                    <ListItemText primary={criteria.name} />
+                                                                    <ListItemSecondaryAction>
+                                                                        <ListItemIcon className="drag-handle">
+                                                                            <DragHandleIcon />
+                                                                        </ListItemIcon>
+                                                                    </ListItemSecondaryAction>
+                                                                </ListItem>
+                                                            </Draggable>
+                                                        ))}
+                                                    </Container>
+                                                </List>
+                                            </Box>
+                                            {scoringType === 'Rating' ? (
+                                                <table>
+                                                    <thead>
+
+                                                        <tr>
+                                                            <th>Criteria Name</th>
+                                                            <th>Ratings (%)</th>
                                                         </tr>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
-                                    <List>
-                                        <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onDropCriteria}>
-                                            {saveCriteria.map((criteria) => (
-                                                <Draggable key={criteria.id}>
-                                                    <ListItem>
-                                                        <ListItemText primary={criteria.name} />
-                                                        <Input
-                                                            type='number'
-                                                            id='venue'
-                                                            name={criteria.name}
-                                                            fullWidth
-                                                            value={criteria.percent}
-                                                            onChange={onChangeScore}
-                                                            variant="filled"
-                                                            required
-                                                        />
-                                                        <ListItemSecondaryAction>
-                                                            <ListItemIcon className="drag-handle">
-                                                                <DragHandleIcon />
-                                                            </ListItemIcon>
-                                                        </ListItemSecondaryAction>
-                                                    </ListItem>
-                                                </Draggable>
-                                            ))}
-                                        </Container>
-                                    </List>
-                                </div>
-                            </Item>
-                        </Grid>
+                                                        <tr>
+                                                            <th>Criteria Name</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {
+                                                            saveCriteria.map(data => {
+                                                                return (
+                                                                    <tr key={data.id}>
+                                                                        <td>{data.name}</td>
+                                                                        <Input
+                                                                            type='number'
+                                                                            id='venue'
+                                                                            name={data.name}
+                                                                            fullWidth
+                                                                            value={data.percent}
+                                                                            onChange={onChangeScore}
+                                                                            variant="filled"
+                                                                            required
+                                                                        />
+                                                                        <td>
+                                                                        </td>
+                                                                    </tr>
+                                                                )
+                                                            })
+                                                        }
+                                                    </tbody>
+                                                </table>
+
+                                            ) : (
+                                                <></>
+                                            )}
+
+                                        </div>
+                                    </Item>
+                                </Grid>
+                            </>
+                        ) : (
+                            <>  </>
+                        )}
+
                     </Grid>
                 </div>
             )

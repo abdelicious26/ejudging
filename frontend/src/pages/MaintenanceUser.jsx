@@ -262,48 +262,26 @@ function MaintenanceUser() {
     *   @Parameters:     event
     */
     const resetPassword = (e) => {
-        e.preventDefault()
-        //VALIDATING SOME FIELDS
-        if (!updateId) {
-            return toast.error('Please select a user record');
+        e.preventDefault();
+        if (!updateUser.updateId) {
+            console.log('error resetting password, No User Id found');
         }
-        if (!updateRecordType) {
-            return toast.error('Please Select a Record Type');
-        }
-        //SAVE UPDATE USER
-        axios.put(
-            `${process.env.REACT_APP_BACKEND_API}users/update/${updateId}`,
-            {
-                firstName: updateFirstName,
-                lastName: updateLastName,
-                username: updateUsername,
-                recordType: updateRecordType,
-                isActive: updateIsActive
-            },
-            { headers: { "Authorization": `Bearer ${token}` } })
-            .then((response) => {
-                toast.success('Update Success');
-                setUpdateUser({
-                    updateId: '',
-                    updateFirstName: '',
-                    updateLastName: '',
-                    updateUsername: '',
-                    updateRecordType: '',
-                    updateIsActive: false
+        else {
+            axios.put(
+                `${process.env.REACT_APP_BACKEND_API}users/resetpassword/${updateUser.updateId}`,
+                {
+                    defaultPassword: 'password1234',
+                },
+                { headers: { "Authorization": `Bearer ${token}` } })
+                .then((response) => {
+                    toast.success(`Successfully reset the user's password`);
                 })
-                setViewModal(false);
-                // AUTO REFRESH TABLE
-                axios.get(
-                    `${process.env.REACT_APP_BACKEND_API}users/`,
-                    { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                        if (!response) setAllUsers("No User Records")
-                        setAllUsers(response.data);
-                        console.log(response.data)
-                    })
-            })
-            .catch((error) => {
-                toast.error('Sorry, there was an error. the username might be already existing.')
-            })
+                .catch((error) => {
+                    toast.error('Sorry, there was an error')
+                })
+            console.log('resetting password now!');
+        }
+        setResetModal(false);
     }
 
     /*
@@ -565,11 +543,14 @@ function MaintenanceUser() {
                         <h1>
                             <p>Are you sure you want to Proceed?</p>
                         </h1>
+                        <h4>
+                            <p>This action cannot be undone.</p>
+                        </h4>
                     </div>
                 </div>
 
                 <Box sx={{ m: 1 }}>
-                    <Button sx={{ mx: 1 }} variant="contained" color="error" onClick={() => setResetModal(false)}>
+                    <Button sx={{ mx: 1 }} variant="contained" color="error" onClick={resetPassword}>
                         Reset Password
                     </Button>
                     <Button sx={{ mx: 1 }} variant="outlined" color="error" onClick={() => setResetModal(false)}>

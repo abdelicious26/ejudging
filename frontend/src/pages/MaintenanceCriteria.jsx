@@ -18,7 +18,7 @@ import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
-import { set } from 'mongoose'
+import { set } from 'mongoose';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -83,7 +83,7 @@ function MaintenanceCriteria() {
     const { updateId, updateName, updateDescription, updateIsActive } = updateCriteria
 
     const openRecord = (event) => {
-        //console.log(event.target.id)
+        console.log(event.target.id)
         selectedCriteria = event.target.id;
         let result = allCriteria.find(({ _id }) => _id === selectedCriteria);
         setViewModal(true);
