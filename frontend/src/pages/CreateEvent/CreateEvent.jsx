@@ -8,7 +8,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { useTheme, styled } from '@mui/material/styles';
-import { arrayMoveMutable, arrayMoveImmutable } from "array-move";
+import { arrayMoveImmutable } from "array-move";
 import {
     TextField, Input, Button, InputLabel, OutlinedInput, MenuItem, FormControl,
     StepLabel, Step, Stepper, Stack, Paper, Grid, CardContent, Card, CssBaseline, Checkbox,
@@ -80,7 +80,6 @@ function CreateEvent() {
             { headers: { "Authorization": `Bearer ${token}` } })
             .then(response => {
                 if (!response) return setGetJudge("No Active Judge Records")
-                // console.log(response.data)
                 let tempJudgeList = []
                 let tempActiveJudge = []
                 response.data.forEach(element => {
@@ -94,7 +93,6 @@ function CreateEvent() {
                 setGetJudge(tempJudgeList);
                 setShowJudge(tempActiveJudge);
             })
-        //console.log(showJudge)
         axios.get(
             `${process.env.REACT_APP_BACKEND_API}participant/active`,
             { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
@@ -132,19 +130,21 @@ function CreateEvent() {
 
     //@ USE EFFECT CHECKING OF CRITERIA
     useEffect(() => {
-        console.log(selectedCriteria.length)
         let tempCriteriaList = []
+        let criteriaOrderNumber = 1;
         selectedCriteria.forEach(criteriaName => {
             const index = getCriteria.findIndex(object => {
                 return object.name === criteriaName;
             })
             if (index != null) {
                 const tempId = getCriteria[index].id;
-                let tempCriteriaRecord = {}
-                tempCriteriaRecord.name = criteriaName
-                tempCriteriaRecord.id = tempId
-                tempCriteriaRecord.percent = ''
-                tempCriteriaList.push(tempCriteriaRecord)
+                let tempCriteriaRecord = {};
+                tempCriteriaRecord.name = criteriaName;
+                tempCriteriaRecord.id = tempId;
+                tempCriteriaRecord.percent = 1;
+                tempCriteriaRecord.orderNumber = criteriaOrderNumber;
+                tempCriteriaList.push(tempCriteriaRecord);
+                criteriaOrderNumber++;
             }
         })
         setSaveCriteria(tempCriteriaList)
@@ -152,25 +152,35 @@ function CreateEvent() {
 
     //@ USE EFFECT CHECKING OF PARTICIPANT AND JUDGE
     useEffect(() => {
-        let judgeId = []
+        let judgeId = [];
+        let judgeOrderNumber = 1;
         selectedJudge.forEach(judgeName => {
+            let _judge = {}
             const index = getJudge.findIndex(object => {
                 return object.name === judgeName;
             })
             if (index != null) {
                 const tempId = getJudge[index].id;
-                judgeId.push(tempId)
+                _judge.userId = tempId;
+                _judge.orderNumber = judgeOrderNumber;
+                judgeId.push(_judge);
+                judgeOrderNumber++;
             }
         })
         setSaveJudge(judgeId)
         let participantId = []
+        let participantOrderNumber = 1;
         selectedParticipant.forEach(participantName => {
+            let _participant = {}
             const index = getParticipant.findIndex(object => {
                 return object.name === participantName;
             })
             if (index != null) {
                 const tempId = getParticipant[index].id;
-                participantId.push(tempId)
+                _participant.participantId = tempId;
+                _participant.orderNumber = participantOrderNumber;
+                participantId.push(_participant)
+                participantOrderNumber++;
             }
         })
         setSaveParticipant(participantId)
@@ -213,7 +223,10 @@ function CreateEvent() {
         }
         if (isError) return console.log('Error saving')
         else {
-            let URL = 'http://localhost:5000/api/events/'
+            console.log('saveJudge', saveJudge);
+            console.log('saveParticipant', saveParticipant);
+            console.log('saveCriteria', saveCriteria);
+            // return;
             axios.post(
                 `${process.env.REACT_APP_BACKEND_API}events/`,
                 {
@@ -237,7 +250,8 @@ function CreateEvent() {
                         axios.put(
                             `${process.env.REACT_APP_BACKEND_API}events/detail/judge/${response.data._id}`,
                             {
-                                userId: judge
+                                userId: judge.userId,
+                                orderNumber: judge.orderNumber
                             },
                             { headers: { "Authorization": `Bearer ${token}` } })
                             .catch((error) => {
@@ -250,7 +264,8 @@ function CreateEvent() {
                         axios.put(
                             `${process.env.REACT_APP_BACKEND_API}events/detail/participant/${response.data._id}`,
                             {
-                                participantId: participant
+                                participantId: participant.participantId,
+                                orderNumber: participant.orderNumber
                             },
                             { headers: { "Authorization": `Bearer ${token}` } })
                             .catch((error) => {
@@ -264,7 +279,8 @@ function CreateEvent() {
                             `${process.env.REACT_APP_BACKEND_API}events/detail/criteria/${response.data._id}`,
                             {
                                 criteriaId: criteria.id,
-                                percent: parseInt(criteria.percent)
+                                percent: parseInt(criteria.percent),
+                                orderNumber: criteria.orderNumber
                             },
                             { headers: { "Authorization": `Bearer ${token}` } })
                             .catch((error) => {
@@ -289,8 +305,6 @@ function CreateEvent() {
             ...prevState,
             [event.target.name]: event.target.value,
         }))
-        console.log('New Event', newEvent);
-        console.log('Event => ', event.target.value);
     }
 
     const onChangeScore = (event) => {
@@ -311,7 +325,6 @@ function CreateEvent() {
         setSelectedJudge(
             typeof value === 'string' ? value.split(',') : value,
         );
-        console.log(selectedJudge)
     };
 
     const handleChangeParticipant = (event) => {
@@ -322,7 +335,6 @@ function CreateEvent() {
             // On autofill we get a stringified value.
             typeof value === 'string' ? value.split(',') : value,
         );
-        console.log('SELECTED PARTICIPANT => ', JSON.stringify(selectedParticipant));
     };
 
     const handleChangeCriteria = (event) => {
@@ -336,17 +348,14 @@ function CreateEvent() {
     };
 
     const onDropCriteria = ({ removedIndex, addedIndex }) => {
-        console.log({ removedIndex, addedIndex });
         setSelectedCriteria(items => arrayMoveImmutable(items, removedIndex, addedIndex));
     };
 
     const onDropJudge = ({ removedIndex, addedIndex }) => {
-        console.log({ removedIndex, addedIndex });
         setSelectedJudge(items => arrayMoveImmutable(items, removedIndex, addedIndex));
     };
 
     const onDropParticipant = ({ removedIndex, addedIndex }) => {
-        console.log({ removedIndex, addedIndex });
         setSelectedParticipant(items => arrayMoveImmutable(items, removedIndex, addedIndex));
     };
 

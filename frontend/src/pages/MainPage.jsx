@@ -58,7 +58,6 @@ function MainPage(props) {
     };
 
     const onLogout = () => {
-        console.log('logging out');
         let decision = window.confirm("Are you sure you want to logout?");
         if (decision) {
             dispatch(logout());

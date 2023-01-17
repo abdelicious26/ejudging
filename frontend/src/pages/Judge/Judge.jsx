@@ -8,6 +8,8 @@ import { format } from "date-fns";
 import { styled } from '@mui/material/styles';
 import CircleIcon from '@mui/icons-material/Circle';
 import { Modal, Stack, Paper, Box, Typography, TextField, Button, FormControl, Switch } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -282,9 +284,20 @@ function Judge() {
                 aria-describedby="parent-modal-description"
             >
                 <Box sx={{ ...style }}>
+                    <Box
+                        m={1}
+                        //margin
+                        display="flex"
+                        justifyContent="flex-end"
+                        alignItems="flex-end"
+                    >
+                        <IconButton color="error" aria-label="close modal" onClick={handleCloseModal}>
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
                     <EventDetail event={selectedEvent} participants={allParticipants} criteria={allCriteria} judges={allJudge} />
 
-                    <Button variant="outlined" color="error" fullWidth onClick={handleCloseModal} sx={{ mt: 3 }}>
+                    <Button variant="outlined" color="error" fullWidth onClick={handleCloseModal} sx={{ mt: 2 }}>
                         Close
                     </Button>
                 </Box>

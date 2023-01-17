@@ -90,7 +90,7 @@ module.exports.updateJudge = asyncHandler(async (request, response) => {
                 throw new Error('Event not found')
             }
             return eventModel.findByIdAndUpdate(request.params.id, {
-                $push: { judge: { userId: request.body.userId } }
+                $push: { judge: { userId: request.body.userId, orderNumber: request.body.orderNumber } }
             })
         })
     response.status(200).json(addJudge)
@@ -100,7 +100,7 @@ module.exports.updateJudge = asyncHandler(async (request, response) => {
 // @access  Protected
 module.exports.updateCriteria = asyncHandler(async (request, response) => {
 
-    const { criteriaId, percent } = request.body
+    const { criteriaId, percent, orderNumber } = request.body
     if (!criteriaId || !percent) {
         response.status(400)
         throw new Error('Please add all fields')
@@ -117,6 +117,7 @@ module.exports.updateCriteria = asyncHandler(async (request, response) => {
                     criteria: {
                         criteriaId: criteriaId,
                         percent: percent,
+                        orderNumber: orderNumber
                     }
                 },
             })
@@ -160,8 +161,29 @@ module.exports.updateParticipant = asyncHandler(async (request, response) => {
                 throw new Error('Event not found')
             }
             return eventModel.findByIdAndUpdate(request.params.id, {
-                $push: { participant: { participantId: request.body.participantId } }
+                $push: { participant: { participantId: request.body.participantId, orderNumber: request.body.orderNumber }, }
             })
+        })
+    response.status(200).json(addParticipant)
+})
+
+// @desc    Delete Event
+// @access  Protected
+module.exports.deleteEvent = asyncHandler(async (request, response) => {
+    const addParticipant = eventModel.findById(request.params.id)
+        .then(event => {
+            if (!event) {
+                response.status(400)
+                throw new Error('Event not found')
+            }
+            eventModel.findOneAndRemove({ _id: request.params.id }, function (err) {
+                if (!err) {
+                    message.type = 'notification!';
+                }
+                else {
+                    message.type = 'error';
+                }
+            });
         })
     response.status(200).json(addParticipant)
 })

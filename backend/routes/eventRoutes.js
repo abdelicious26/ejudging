@@ -13,5 +13,6 @@ router.put('/detail/criteria/:id', eventController.updateCriteria)
 router.put('/detail/category/:id', eventController.updateCategory)
 router.put('/detail/participant/:id', eventController.updateParticipant)
 router.put('/detail/:id', eventController.update)
+router.delete('/:id', eventController.deleteEvent)
 
 module.exports = router;

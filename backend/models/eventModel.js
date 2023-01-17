@@ -49,7 +49,7 @@ const eventSchema = new mongoose.Schema({
         percent: {
             type: Number,
             required: [true, "Percent is required"],
-            min: 5,
+            min: 0,
             max: 100
         },
     }],
@@ -58,7 +58,11 @@ const eventSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             required: true,
             ref: 'User'
-        }
+        },
+        orderNumber: {
+            type: Number
+            // required: [true, "Order Number is required"]
+        },
     }],
     participant: [{
         participantId: {

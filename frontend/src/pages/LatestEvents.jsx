@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import Spinner from '../components/Spinner'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Modal from 'react-modal'
 import ModalUI from '@mui/material/Modal';
-import Select from 'react-select';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -14,15 +12,15 @@ import Grid from '@mui/material/Grid';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import Button from '@mui/material/Button';
-import TableCell from '@mui/material/TableCell';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Print from '@mui/icons-material/Print';
-import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PreviewIcon from '@mui/icons-material/Preview';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -30,13 +28,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import Divider from '@mui/material/Divider';
 import { format } from "date-fns";
 import ReactToPrint from "react-to-print";
-import List from '@mui/material/List';
-import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Checkbox from '@mui/material/Checkbox';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -46,12 +37,71 @@ const Item = styled(Paper)(({ theme }) => ({
     color: theme.palette.text.secondary,
 }));
 
-const RecordType = [
-    { label: "Admin", value: 'admin' },
-    { label: "Judge", value: 'judge' }
-];
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+    [`&.${tableCellClasses.head}`]: {
+        backgroundColor: theme.palette.error.dark,
+        color: theme.palette.common.white,
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    [`&.${tableCellClasses.body}`]: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+}));
+
+const StyledTableCellPerJudge = styled(TableCell)(({ theme }) => ({
+    [`&.${tableCellClasses.head}`]: {
+        backgroundColor: theme.palette.warning.main,
+        color: theme.palette.common.white,
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    [`&.${tableCellClasses.body}`]: {
+        fontSize: 14,
+    },
+}));
+
+const StyledTableCellView = styled(TableCell)(({ theme }) => ({
+    [`&.${tableCellClasses.head}`]: {
+        backgroundColor: theme.palette.error.main,
+        color: theme.palette.common.white,
+        fontWeight: 'bold',
+        fontSize: 16,
+        size: '50%'
+    },
+    [`&.${tableCellClasses.body}`]: {
+        fontSize: 14,
+    },
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    '&:nth-of-type(odd)': {
+        backgroundColor: theme.palette.action.hover,
+    },
+    // hide last border
+    '&:last-child td, &:last-child th': {
+        border: 0,
+    },
+}));
 
 const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '90%',
+    height: '90%',
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    overflow: 'auto',
+    boxShadow: 24,
+    pt: 2,
+    px: 4,
+    pb: 3,
+};
+
+const resultModalStyle = {
     position: 'absolute',
     top: '50%',
     left: '50%',
@@ -177,7 +227,6 @@ function LatestEvents() {
                         const found = allJudge.find(element => element._id === result.judge);
                         return { ...result, judgeName: `${found.firstName} ${found.lastName}` }
                     })
-                    console.log('AllEventScore', AllEventScore)
 
                     //SET RANK PER JUDGE -----------------------------
                     let JudgeWithRanking = []
@@ -191,7 +240,6 @@ function LatestEvents() {
                         tempjudgeRecord.score = judgeRecord
                         JudgeWithRanking.push(tempjudgeRecord)
                     })
-                    console.log('JudgeWithRanking 1: ', JudgeWithRanking);
 
                     JudgeWithRanking = JudgeWithRanking.map(judge => {
                         let scorePerParticipant = []
@@ -211,7 +259,6 @@ function LatestEvents() {
                             scorePerParticipant.push(scoreObject);
                         })
 
-                        console.log('scorePerParticipant ', scorePerParticipant)
                         //Rank Participants based on Score
                         let rankCount = 1;
                         let judgeScores = scorePerParticipant.map(score => {
@@ -219,24 +266,20 @@ function LatestEvents() {
                         })
                         judgeScores = [...new Set(judgeScores)];
                         judgeScores.sort(function (a, b) { return b - a });
-                        console.log('judgeScores', judgeScores)
                         let rankPerParticipant = [];
                         judgeScores.forEach(score => {
                             let participants = scorePerParticipant.filter(element => element.totalScore === score);
                             let rank;
                             if (participants.length == 1) {
                                 rank = rankCount;
-                                console.log('participants', participants, participants.length, rank);
                                 rankCount += participants.length;
                             }
                             else if (participants.length > 1) {
                                 let tempRankCountOld = rankCount;
                                 rankCount += participants.length;
                                 rank = (rankCount - 1 + tempRankCountOld) / participants.length;
-                                console.log('participants', participants, participants.length, rank);
                             }
                             participants.forEach(participant => {
-                                console.log("score", judge.firstName, score, participant, `rank No.: ${rank}`);
                                 let participantRank = {};
                                 participantRank.participant = participant.participant;
                                 participantRank.participantId = participant.participant._id;
@@ -248,7 +291,6 @@ function LatestEvents() {
 
                         return { ...judge, scorePerParticipant: scorePerParticipant, participantsRank: rankPerParticipant };
                     })
-                    console.log('JudgeWithRanking 2: ', JudgeWithRanking);
 
                     setRankPerJudge(JudgeWithRanking);
                     // -------------------------------------------------------
@@ -264,7 +306,6 @@ function LatestEvents() {
                         tempParticipantRecord.score = participantRecord
                         ParticipantsWithRank.push(tempParticipantRecord)
                     })
-                    console.log('ParticipantsWithRank 1: ', ParticipantsWithRank);
 
                     ParticipantsWithRank = ParticipantsWithRank.map(participant => {
                         let _rankPerJudge = [];
@@ -272,7 +313,6 @@ function LatestEvents() {
                         JudgeWithRanking.forEach(judge => {
                             let ranking = {};
                             let participantScore = judge.participantsRank.find(element => element.participantId === participant._id)
-                            console.log('participantScore => ', participantScore);
                             ranking.judge = judge;
                             ranking.score = participantScore.score;
                             ranking.rank = participantScore.rank;
@@ -282,7 +322,6 @@ function LatestEvents() {
                         return { ...participant, rankingPerJudge: _rankPerJudge, sumOfRank: tempSumOfRank }
                     })
                     ParticipantsWithRank = ParticipantsWithRank.sort((a, b) => parseFloat(a.sumOfRank) - parseFloat(b.sumOfRank));
-                    console.log('ParticipantsWithRank 2: ', ParticipantsWithRank)
 
                     let participantsWithFinalRanking = []
                     let rankCount = 1;
@@ -296,20 +335,17 @@ function LatestEvents() {
                         let rank;
                         if (participants.length == 1) {
                             rank = rankCount;
-                            console.log('participants', participants, participants.length, rank);
                             rankCount += participants.length;
                         }
                         else if (participants.length > 1) {
                             let tempRankCountOld = rankCount;
                             rankCount += participants.length;
                             rank = (rankCount - 1 + tempRankCountOld) / participants.length;
-                            console.log('participants', participants, participants.length, rank);
                         }
                         participants.forEach(participant => {
                             participant.finalRank = parseFloat(rank.toFixed(2));
                             participantsWithFinalRanking.push(participant);
                         })
-                        console.log('participantsWith Final Ranking', participantsWithFinalRanking)
                     })
                     setEventResult(participantsWithFinalRanking)
                     // -------------------------------------------------------
@@ -336,10 +372,6 @@ function LatestEvents() {
         }
     }
 
-    const onClickTest = (event) => {
-        console.log('I am Clicked => ', event, event.target.id);
-    }
-
     const onClickEdit = (event) => {
         setModal(true)
         const found = allEvents.find(element => element._id === event.target.id);
@@ -347,18 +379,26 @@ function LatestEvents() {
     }
 
     const onClickDelete = (event) => {
-        setModal(true)
-        const found = allEvents.find(element => element._id === event.target.id);
-        setSelectedEvent(found)
-    }
-
-    const onClickPrint = () => {
-        //console.log('print');  
-        let printContents = document.getElementById('printablediv').innerHTML;
-        let originalContents = document.body.innerHTML;
-        document.body.innerHTML = printContents;
-        window.print();
-        document.body.innerHTML = originalContents;
+        let decision = window.confirm("You are about to delete the event. Are you sure you want to proceed? This is action cannot be undone.");
+        if (decision) {
+            console.log('Event Id =>', event.target.id);
+            // axios.delete(
+            //     `${process.env.REACT_APP_BACKEND_API}events/${event.target.id}`,
+            //     null,
+            //     {
+            //         headers: {
+            //             "Authorization": `Bearer ${token}`,
+            //             'Access-Control-Allow-Origin': '*',
+            //         }
+            //     })
+            //     .then((response) => {
+            //         toast.success('You have deleted the Event.');
+            //     })
+            //     .catch((error) => {
+            //         toast.error('There was an error deleting the Event.');
+            //         // toast.error(error.response.data);
+            //     })
+        }
     }
 
     const onClickUpdateStatus = (event => {
@@ -413,12 +453,25 @@ function LatestEvents() {
                     aria-describedby="child-modal-description"
                 >
                     <div>
-                        <Box sx={{ ...style, width: '85%', height: '85%' }}>
-                            <Box id='printablediv' ref={componentRef} class='printable'>
-                                <Box sx={{ border: 0, borderRadius: '8px', mb: 3 }}>
-                                    <h3>Event Name:</h3>
-                                    <h2 id="child-modal-title">{selectedEvent.name}</h2>
-                                    <TableContainer component={Paper}>
+                        <Box sx={{ ...resultModalStyle, width: '85%', height: '85%' }}>
+                            <Box
+                                m={1}
+                                //margin
+                                display="flex"
+                                justifyContent="flex-end"
+                                alignItems="flex-end"
+                            >
+                                <IconButton color="error" aria-label="close modal" onClick={() => setResultModal(false)}>
+                                    <CloseIcon />
+                                </IconButton>
+                            </Box>
+                            <Box id='printablediv' ref={componentRef} className='printable'>
+                                <Box sx={{ border: 0, borderRadius: '8px', mb: 6 }}>
+                                    <p id="child-modal-title"><b>Event Name: </b>{selectedEvent.name}</p>
+                                    <p id="child-modal-title"><b>Description: </b>{selectedEvent.description}</p>
+                                    <p id="child-modal-title"><b>Venue: </b>{selectedEvent.venue}</p>
+                                    <p id="child-modal-title"><b>Date and Time: </b> {formatDateAndTime(selectedEvent.dateTime)}</p>
+                                    {/* <TableContainer component={Paper}>
                                         <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                             <TableHead>
                                                 <TableRow>
@@ -432,7 +485,7 @@ function LatestEvents() {
                                                         sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                                     >
                                                         <TableCell align="left">{row.name}</TableCell>
-                                                        {/* {row.rankingPerJudge.map((rankingPerJudge) => (
+                                                        {row.rankingPerJudge.map((rankingPerJudge) => (
                                                             <TableCell key={rankingPerJudge.judge._id} align="left">
                                                                 <TextField
                                                                     name={rankingPerJudge._id}
@@ -447,7 +500,7 @@ function LatestEvents() {
                                                                     readOnly
                                                                 />
                                                             </TableCell>
-                                                        ))} */}
+                                                        ))}
                                                         <TableCell align="left">
                                                             <TextField
                                                                 label='Total Points'
@@ -478,30 +531,60 @@ function LatestEvents() {
                                                 ))}
                                             </TableBody>
                                         </Table>
-                                    </TableContainer>
+                                    </TableContainer> */}
 
+                                    <TableContainer component={Paper} sx={{ my: 1 }}>
+                                        <Table sx={{ minWidth: 650 }} aria-label="customized table">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <StyledTableCell align="left">Participant Name</StyledTableCell>
+                                                    <StyledTableCell align="right">Total Points from Rank</StyledTableCell>
+                                                    <StyledTableCell align="right">Final Rank</StyledTableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {eventResult.map((row) => (
+                                                    <StyledTableRow key={row.name}>
+                                                        <StyledTableCell component="th" scope="row" align="left">
+                                                            {row.name}
+                                                        </StyledTableCell>
+                                                        <StyledTableCell align="right">{row.sumOfRank}</StyledTableCell>
+                                                        <StyledTableCell align="right">{row.finalRank}</StyledTableCell>
+                                                    </StyledTableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
                                 </Box>
                                 {/* TABLE FOR PARTICIPANT RANK PER JUDGE */}
                                 <Divider />
-                                <h3>Participants Rank per Judge:</h3>
+                                <h3>Score per Judge:</h3>
+
                                 {rankPerJudge.map((judge) => (
                                     // <h4></h4>
                                     <div key={judge._id}>
-                                        <h4> Judge: {judge.firstName} {judge.lastName}</h4>
-                                        < TableContainer component={Paper} >
+                                        {/* <h4> Judge: {judge.firstName} {judge.lastName}</h4> */}
+
+                                        <p id="child-modal-title">Judge Name: <b>{judge.firstName} {judge.lastName}</b></p>
+                                        < TableContainer component={Paper} sx={{ mb: 3 }}>
                                             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                                 <TableHead>
-                                                    <TableRow>
-                                                        <TableCell align="left"></TableCell>
-                                                    </TableRow>
+                                                    <StyledTableRow>
+                                                        <StyledTableCellPerJudge>Participant Name</StyledTableCellPerJudge>
+                                                        <StyledTableCellPerJudge align="right">Total Score</StyledTableCellPerJudge>
+                                                        <StyledTableCellPerJudge align="right">Rank</StyledTableCellPerJudge>
+                                                    </StyledTableRow>
                                                 </TableHead>
                                                 <TableBody>
                                                     {judge.participantsRank.map((participant) => (
-                                                        <TableRow
+                                                        <StyledTableRow
                                                             key={participant.participant._id}
                                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                                         >
-                                                            <TableCell align="left">
+                                                            <StyledTableCellPerJudge align="left">{participant.participant.name}</StyledTableCellPerJudge>
+                                                            <StyledTableCellPerJudge align="right">{participant.score}</StyledTableCellPerJudge>
+                                                            <StyledTableCellPerJudge align="right">{participant.rank}</StyledTableCellPerJudge>
+                                                            {/* <TableCell align="left">
                                                                 {participant.participant.name}
                                                             </TableCell>
                                                             <TableCell align="left">
@@ -527,8 +610,8 @@ function LatestEvents() {
                                                                     variant="filled"
                                                                     readOnly
                                                                 />
-                                                            </TableCell>
-                                                        </TableRow>
+                                                            </TableCell> */}
+                                                        </StyledTableRow>
                                                     ))}
                                                 </TableBody>
                                             </Table>
@@ -540,8 +623,6 @@ function LatestEvents() {
 
                             <Box sx={{ mt: 2 }}>
                                 <Button onClick={() => setResultModal(false)} variant='outlined' color='error' sx={{ mr: 1 }}>Close Result</Button>
-                                {/* <Button startIcon={<Print />} variant='contained' color='success' onClick={onClickPrint}>Print Result</Button> */}
-
                                 <ReactToPrint
                                     trigger={() => <Button startIcon={<Print />} variant='contained' color='success'>Print Result</Button>}
                                     content={() => componentRef.current}
@@ -566,7 +647,19 @@ function LatestEvents() {
                     aria-describedby="parent-modal-description"
                     className={modalStyle}
                 >
+
                     <Box sx={{ ...style }}>
+                        <Box
+                            m={1}
+                            //margin
+                            display="flex"
+                            justifyContent="flex-end"
+                            alignItems="flex-end"
+                        >
+                            <IconButton color="error" aria-label="close modal" onClick={() => setModal(false)}>
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
                         <section>
                             <h1>
                                 Event Info:
@@ -597,7 +690,14 @@ function LatestEvents() {
                                     readOnly: true,
                                 }} fullWidth margin="dense"
                             />
-
+                            <TextField
+                                id="outlined-read-only-input"
+                                label="Scoring Type"
+                                defaultValue={selectedEvent.scoringType}
+                                InputProps={{
+                                    readOnly: true,
+                                }} fullWidth margin="dense"
+                            />
                             <TextField
                                 id="outlined-read-only-input"
                                 label="Date and Time"
@@ -637,27 +737,57 @@ function LatestEvents() {
                                         Criteria:
                                     </h1>
                                 </Box>
+
                                 <TableContainer component={Paper} sx={{ mb: 3 }}>
                                     <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                         <TableHead>
-                                            <TableRow>
-                                                <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Criteria Name</TableCell>
-                                                <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</TableCell>
-                                                <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Percent</TableCell>
-                                            </TableRow>
+                                            {selectedEvent.scoringType === "Rating" ?
+                                                (
+                                                    <StyledTableRow>
+
+                                                        <StyledTableCellView align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Criteria Name</StyledTableCellView>
+                                                        <StyledTableCellView align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</StyledTableCellView>
+
+                                                        <StyledTableCellView align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Percent(%)</StyledTableCellView>
+                                                    </StyledTableRow>
+                                                ) : (
+                                                    <StyledTableRow>
+                                                        <StyledTableCellView align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Criteria Name</StyledTableCellView>
+                                                        <StyledTableCellView align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</StyledTableCellView>
+                                                    </StyledTableRow>
+                                                )
+                                            }
                                         </TableHead>
-                                        <TableBody>
-                                            {selectedCriteria.map((row) => (
-                                                <TableRow
-                                                    key={row._id}
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                >
-                                                    <TableCell align="left">{row.name}</TableCell>
-                                                    <TableCell align="left">{row.description}</TableCell>
-                                                    <TableCell align="left">{row.percent}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
+                                        {selectedEvent.scoringType === "Rating" ?
+                                            (
+                                                <TableBody>
+                                                    {selectedCriteria.map((row) => (
+                                                        <StyledTableRow
+                                                            key={row._id}
+                                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                        >
+                                                            <StyledTableCellView align="left">{row.name}</StyledTableCellView>
+                                                            <StyledTableCellView align="left">{row.description}</StyledTableCellView>
+                                                            <StyledTableCellView align="left">{row.percent}</StyledTableCellView>
+                                                        </StyledTableRow>
+
+                                                    ))}
+                                                </TableBody>
+                                            ) : (
+                                                <TableBody>
+                                                    {selectedCriteria.map((row) => (
+                                                        <StyledTableRow
+                                                            key={row._id}
+                                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                        >
+                                                            <StyledTableCellView align="left">{row.name}</StyledTableCellView>
+                                                            <StyledTableCellView align="left">{row.description}</StyledTableCellView>
+                                                        </StyledTableRow>
+
+                                                    ))}
+                                                </TableBody>
+                                            )
+                                        }
                                     </Table>
                                 </TableContainer>
                             </Box>
@@ -673,20 +803,20 @@ function LatestEvents() {
                                 <TableContainer component={Paper} sx={{ mb: 3 }}>
                                     <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                         <TableHead>
-                                            <TableRow>
-                                                <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>First Name</TableCell>
-                                                <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Last Name</TableCell>
-                                            </TableRow>
+                                            <StyledTableRow>
+                                                <StyledTableCellView align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>First Name</StyledTableCellView>
+                                                <StyledTableCellView align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Last Name</StyledTableCellView>
+                                            </StyledTableRow>
                                         </TableHead>
                                         <TableBody>
                                             {selectedJudge.map((row) => (
-                                                <TableRow
+                                                <StyledTableRow
                                                     key={row._id}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                                 >
-                                                    <TableCell align="left">{row.firstName}</TableCell>
-                                                    <TableCell align="left">{row.lastName}</TableCell>
-                                                </TableRow>
+                                                    <StyledTableCellView align="left">{row.firstName}</StyledTableCellView>
+                                                    <StyledTableCellView align="left">{row.lastName}</StyledTableCellView>
+                                                </StyledTableRow>
                                             ))}
                                         </TableBody>
                                     </Table>
@@ -704,20 +834,20 @@ function LatestEvents() {
                                 <TableContainer component={Paper} sx={{ mb: 3 }}>
                                     <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                         <TableHead>
-                                            <TableRow>
-                                                <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Participant Name</TableCell>
-                                                <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</TableCell>
-                                            </TableRow>
+                                            <StyledTableRow>
+                                                <StyledTableCellView align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Participant Name</StyledTableCellView>
+                                                <StyledTableCellView align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</StyledTableCellView>
+                                            </StyledTableRow>
                                         </TableHead>
                                         <TableBody>
                                             {selectedParticipants.map((row) => (
-                                                <TableRow
+                                                <StyledTableRow
                                                     key={row._id}
                                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                                 >
-                                                    <TableCell align="left">{row.name}</TableCell>
-                                                    <TableCell align="left">{row.description}</TableCell>
-                                                </TableRow>
+                                                    <StyledTableCellView align="left">{row.name}</StyledTableCellView>
+                                                    <StyledTableCellView align="left">{row.description}</StyledTableCellView>
+                                                </StyledTableRow>
                                             ))}
                                         </TableBody>
                                     </Table>

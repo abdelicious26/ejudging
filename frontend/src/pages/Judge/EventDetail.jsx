@@ -15,33 +15,32 @@ import ListItemText from '@mui/material/ListItemText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import PersonIcon from '@mui/icons-material/Person';
-import AddIcon from '@mui/icons-material/Add';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Box, Switch, Typography } from '@mui/material';
+import { Table, TableBody, TableContainer, TableHead, TableRow, TextField, Button, Paper, Box, Switch, Typography } from '@mui/material';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import { blue } from '@mui/material/colors';
 
-const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-    ...theme.typography.body2,
-    padding: theme.spacing(1),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+    [`&.${tableCellClasses.head}`]: {
+        backgroundColor: theme.palette.error.dark,
+        color: theme.palette.common.white,
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    [`&.${tableCellClasses.body}`]: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
 }));
 
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '80%',
-    height: '80%',
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    overflow: 'auto',
-    boxShadow: 24,
-    pt: 2,
-    px: 4,
-    pb: 3,
-};
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    '&:nth-of-type(odd)': {
+        backgroundColor: theme.palette.action.hover,
+    },
+    // hide last border
+    '&:last-child td, &:last-child th': {
+        border: 0,
+    },
+}));
 
 function EventDetail({ event, participants, criteria, judges }) {
     const [selectedEvent, setSelectedEvent] = useState(event);
@@ -86,6 +85,7 @@ function EventDetail({ event, participants, criteria, judges }) {
             const found = allParticipants.find(element => element._id === response.participantId);
             ParticipantsWithName.push(found)
         });
+        console.log('ParticipantsWithName', ParticipantsWithName);
 
         let tempParticipantList = []
         ParticipantsWithName.forEach(participant => {
@@ -101,7 +101,6 @@ function EventDetail({ event, participants, criteria, judges }) {
             return { ...participant, criteria: criteriaWithScore, total: '', };
         });
 
-        console.log('Before Update Score =>', participantList);
         //@ GET MY PREVIOUS SCORE
         axios.get(
             `${process.env.REACT_APP_BACKEND_API}judge/event/score/${selectedEvent._id}`,
@@ -111,7 +110,6 @@ function EventDetail({ event, participants, criteria, judges }) {
                 }
                 else {
                     let _tempMyScores = response.data;
-                    console.log('_tempMyScores', _tempMyScores)
                     //ASSIGN PREVIOUS SCORES TO TABLE
                     participantList = participantList.map(participant => {
                         let _tempCriteriaWithScore = participant.criteria.map(criteria => {
@@ -134,7 +132,12 @@ function EventDetail({ event, participants, criteria, judges }) {
                         return { ...participant, total: _tempTotal };
                     })
                 }
+                let _participantOrderNumber = 1;
+                participantList = participantList.map(participant => {
+                    return { ...participant, orderNumber: _participantOrderNumber++ };
+                })
                 setScore(participantList);
+                console.log('participantList', participantList);
             })
     }, [selectedEvent])
 
@@ -147,7 +150,6 @@ function EventDetail({ event, participants, criteria, judges }) {
 
         const handleListItemClick = (value) => {
             onClose(value);
-            console.log(value);
         };
 
         return (
@@ -275,25 +277,37 @@ function EventDetail({ event, participants, criteria, judges }) {
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                 <TableHead>
-                                    <TableRow>
-                                        <TableCell align="left">Participant Name</TableCell>
-                                        <TableCell align="left">Criteria</TableCell>
-                                    </TableRow>
+                                    <StyledTableRow>
+                                        <StyledTableCell align="left">Participant Name</StyledTableCell>
+                                        <StyledTableCell align="left">Criteria</StyledTableCell>
+                                        <StyledTableCell align="left">Total</StyledTableCell>
+                                    </StyledTableRow>
                                 </TableHead>
 
                                 <TableBody>
                                     {score.map((row) => (
-                                        <TableRow
+                                        <StyledTableRow
                                             key={row._id}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell align="left">{row.name}</TableCell>
-                                            {row.criteria.map((criteria) => (
-                                                <TableCell key={criteria._id} align="left">
+                                            <StyledTableCell align="left">
+                                                <TextField
+                                                    name='participantName'
+                                                    label={'Participant No.' + row.orderNumber}
+                                                    value={row.name}
+                                                    readOnly
+                                                    variant="outlined"
+                                                    color="error"
+                                                />
+                                            </StyledTableCell>
+                                            <StyledTableCell align="left">
+                                                {row.criteria.map((criteria) => (
+                                                    // <div key={criteria._id}>
                                                     <TextField
                                                         id={row._id}
                                                         name={criteria._id}
-                                                        label={criteria.name + ' ' + criteria.percent + '%'}
+                                                        key={criteria._id}
+                                                        label={criteria.name + ' - ' + criteria.percent + '%'}
                                                         defaultValue={criteria.score}
                                                         onChange={onChangeScore}
                                                         type="number"
@@ -303,12 +317,16 @@ function EventDetail({ event, participants, criteria, judges }) {
                                                         }}
                                                         variant="outlined"
                                                         required
+                                                        disabled={!selectedEvent.IsOnGoing}
                                                         color="error"
+                                                        sx={{ mr: 1 }}
+                                                        margin='dense'
                                                     />
-                                                </TableCell>
-                                            ))}
+                                                    // </div>
+                                                ))}
+                                            </StyledTableCell>
 
-                                            <TableCell align="left">
+                                            <StyledTableCell align="left">
                                                 <TextField
                                                     id={row._id}
                                                     name='total'
@@ -318,11 +336,11 @@ function EventDetail({ event, participants, criteria, judges }) {
                                                         shrink: true,
                                                     }}
                                                     readOnly
-                                                    variant="filled"
+                                                    variant="outlined"
                                                     color="error"
                                                 />
-                                            </TableCell>
-                                        </TableRow>
+                                            </StyledTableCell>
+                                        </StyledTableRow>
                                     ))}
                                 </TableBody>
                             </Table>
@@ -342,25 +360,37 @@ function EventDetail({ event, participants, criteria, judges }) {
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                 <TableHead>
-                                    <TableRow>
-                                        <TableCell align="left">Participant Name</TableCell>
-                                        <TableCell align="left">Criteria</TableCell>
-                                    </TableRow>
+                                    <StyledTableRow>
+                                        <StyledTableCell align="left">Participant Name</StyledTableCell>
+                                        <StyledTableCell align="left">Criteria</StyledTableCell>
+                                        <StyledTableCell align="left">Total</StyledTableCell>
+                                    </StyledTableRow>
                                 </TableHead>
 
                                 <TableBody>
                                     {score.map((row) => (
-                                        <TableRow
+                                        <StyledTableRow
                                             key={row._id}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell align="left">{row.name}</TableCell>
-                                            {row.criteria.map((criteria) => (
-                                                <TableCell key={criteria._id} align="left">
+                                            <StyledTableCell align="left">
+                                                <TextField
+                                                    name='participantName'
+                                                    label={'Participant No.' + row.orderNumber}
+                                                    value={row.name}
+                                                    readOnly
+                                                    variant="outlined"
+                                                    color="error"
+                                                />
+                                            </StyledTableCell>
+                                            <StyledTableCell align="left">
+                                                {row.criteria.map((criteria) => (
+                                                    // <div key={criteria._id}>
                                                     <TextField
                                                         id={row._id}
                                                         name={criteria._id}
-                                                        label={criteria.name + ' ' + criteria.percent + '%'}
+                                                        key={criteria._id}
+                                                        label={criteria.name}
                                                         defaultValue={criteria.score}
                                                         onChange={onChangeScore}
                                                         type="number"
@@ -370,12 +400,16 @@ function EventDetail({ event, participants, criteria, judges }) {
                                                         }}
                                                         variant="outlined"
                                                         required
+                                                        disabled={!selectedEvent.IsOnGoing}
                                                         color="error"
+                                                        sx={{ mr: 1 }}
+                                                        margin='dense'
                                                     />
-                                                </TableCell>
-                                            ))}
+                                                    // </div>
+                                                ))}
+                                            </StyledTableCell>
 
-                                            <TableCell align="left">
+                                            <StyledTableCell align="left">
                                                 <TextField
                                                     id={row._id}
                                                     name='total'
@@ -385,11 +419,11 @@ function EventDetail({ event, participants, criteria, judges }) {
                                                         shrink: true,
                                                     }}
                                                     readOnly
-                                                    variant="filled"
+                                                    variant="outlined"
                                                     color="error"
                                                 />
-                                            </TableCell>
-                                        </TableRow>
+                                            </StyledTableCell>
+                                        </StyledTableRow>
                                     ))}
                                 </TableBody>
                             </Table>
@@ -408,26 +442,38 @@ function EventDetail({ event, participants, criteria, judges }) {
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                 <TableHead>
-                                    <TableRow>
-                                        <TableCell align="left">Participant Name</TableCell>
-                                        <TableCell align="left">Criteria</TableCell>
-                                    </TableRow>
+                                    <StyledTableRow>
+                                        <StyledTableCell align="left">Participant Name</StyledTableCell>
+                                        <StyledTableCell align="left">Criteria</StyledTableCell>
+                                        <StyledTableCell align="left">Total</StyledTableCell>
+                                    </StyledTableRow>
                                 </TableHead>
 
                                 <TableBody>
                                     {score.map((row) => (
-                                        <TableRow
+                                        <StyledTableRow
                                             key={row._id}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell align="left">{row.name}</TableCell>
-                                            {row.criteria.map((criteria) => (
-                                                <TableCell key={criteria._id} align="left">
+                                            <StyledTableCell align="left">
+                                                <TextField
+                                                    name='participantName'
+                                                    label={'Participant No.' + row.orderNumber}
+                                                    value={row.name}
+                                                    readOnly
+                                                    variant="outlined"
+                                                    color="error"
+                                                />
+                                            </StyledTableCell>
+                                            <StyledTableCell align="left">
+                                                {row.criteria.map((criteria) => (
+                                                    // <div key={criteria._id}>
                                                     <TextField
                                                         id={row._id}
                                                         name={criteria._id}
-                                                        label={criteria.name + ' ' + criteria.percent + '%'}
-                                                        value={criteria.score}
+                                                        key={criteria._id}
+                                                        label={criteria.name + ' - ' + criteria.percent + '%'}
+                                                        defaultValue={criteria.score}
                                                         onChange={onChangeScore}
                                                         type="number"
                                                         inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
@@ -436,12 +482,16 @@ function EventDetail({ event, participants, criteria, judges }) {
                                                         }}
                                                         variant="outlined"
                                                         required
+                                                        disabled={!selectedEvent.IsOnGoing}
                                                         color="error"
+                                                        sx={{ mr: 1 }}
+                                                        margin='dense'
                                                     />
-                                                </TableCell>
-                                            ))}
+                                                    // </div>
+                                                ))}
+                                            </StyledTableCell>
 
-                                            <TableCell align="left">
+                                            <StyledTableCell align="left">
                                                 <TextField
                                                     id={row._id}
                                                     name='total'
@@ -451,11 +501,11 @@ function EventDetail({ event, participants, criteria, judges }) {
                                                         shrink: true,
                                                     }}
                                                     readOnly
-                                                    variant="filled"
+                                                    variant="outlined"
                                                     color="error"
                                                 />
-                                            </TableCell>
-                                        </TableRow>
+                                            </StyledTableCell>
+                                        </StyledTableRow>
                                     ))}
                                 </TableBody>
                             </Table>
@@ -486,6 +536,7 @@ function EventDetail({ event, participants, criteria, judges }) {
                     InputProps={{
                         readOnly: true,
                     }} fullWidth margin="dense" color="error"
+                    variant='standard'
                 />
 
                 <TextField
@@ -495,6 +546,7 @@ function EventDetail({ event, participants, criteria, judges }) {
                     InputProps={{
                         readOnly: true,
                     }} fullWidth margin="dense" color="error"
+                    variant='standard'
                 />
 
                 <TextField
@@ -504,6 +556,7 @@ function EventDetail({ event, participants, criteria, judges }) {
                     InputProps={{
                         readOnly: true,
                     }} fullWidth margin="dense" color="error"
+                    variant='standard'
                 />
 
                 <TextField
@@ -513,9 +566,10 @@ function EventDetail({ event, participants, criteria, judges }) {
                     InputProps={{
                         readOnly: true,
                     }} fullWidth margin="dense" color="error"
+                    variant='standard'
                 />
                 <div>
-                    On Going Event?
+                    Active?
                     <Switch
                         checked={selectedEvent.IsOnGoing}
                         inputProps={{ 'aria-label': 'controlled' }}

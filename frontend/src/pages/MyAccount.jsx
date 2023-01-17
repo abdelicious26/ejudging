@@ -118,7 +118,7 @@ function MyAccount() {
     const submitChangePassword = (e) => {
         e.preventDefault();
         if (newPassword !== confirmPassword) {
-            toast.error('New password and confirm password is not equal.')
+            toast.error('New password and confirm password does not match.')
         }
         else if (window.confirm('Are you sure you want to change password?')) {
             axios.put(
