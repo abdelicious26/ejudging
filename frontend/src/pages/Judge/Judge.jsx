@@ -10,6 +10,7 @@ import CircleIcon from '@mui/icons-material/Circle';
 import { Modal, Stack, Paper, Box, Typography, TextField, Button, FormControl, Switch } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import HelpIcon from '@mui/icons-material/Help';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -21,10 +22,10 @@ const Item = styled(Paper)(({ theme }) => ({
 
 
 const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
+    position: 'fixed',
+    top: '5%',
+    left: '5%',
+    // transform: 'translate(-50%, -50%)',
     width: '90%',
     height: '90%',
     bgcolor: 'background.paper',
@@ -127,25 +128,7 @@ function Judge() {
     }, [selectedEvent])
 
     //@UPDATE Judge Score -------------------------------------------
-    const isEventActive = (isActive) => {
-        if (isActive) {
-            return <>
-                <Box>
-                    <p><CircleIcon color="success" /> Active</p>
-                </Box>
-            </>
-        }
-        else {
-            return <>
-                <Box>
-                    <p><CircleIcon color="error" /> Inactive</p>
-                </Box>
-            </>
-        }
-    }
-
     //@ONCHANGE FUNCTIONS
-
     //@ONCLICK FUNCTIONS
     const onClickView = (event) => {
         const found = allEvents.find(element => element._id === event.target.id);
@@ -176,6 +159,17 @@ function Judge() {
                 <h1>
                     <p>My Events</p>
                 </h1>
+                <Box
+                    m={1}
+                    //margin
+                    display="flex"
+                    justifyContent="flex-end"
+                    alignItems="flex-end"
+                >
+                    <Button variant="contained" color="primary" onClick={() => navigate('/usermanual')} endIcon={<HelpIcon />} size='large'>
+                        Help
+                    </Button>
+                </Box>
             </section>
 
             {/* <TextField label={'Search Event Name'} id="margin-normal" fullWidth margin="normal" /> */}
@@ -188,7 +182,12 @@ function Judge() {
                     >
                         <Box>
                             <FormControl fullWidth>
-                                {isEventActive(eventRecord.IsOnGoing)}
+                                {eventRecord.IsOnGoing ? (
+                                    <p><CircleIcon color="success" /> Active</p>
+                                ) : (
+
+                                    <p><CircleIcon color="error" /> Inactive</p>
+                                )}
                                 <TextField
                                     label="Event Name"
                                     defaultValue={eventRecord.name}
@@ -257,19 +256,15 @@ function Judge() {
                                     margin="dense"
                                     sx={{ mb: 2 }}
                                 />
-                                {/* <div>
-                                    On Going Event?
-                                    <Switch
-                                        checked={eventRecord.IsOnGoing}
-                                        inputProps={{ 'aria-label': 'controlled' }}
-                                        name='IsOnGoing'
-                                        color="error"
-                                        readOnly
-                                    />
-                                </div> */}
 
-                                <Button sx={{ mt: 1 }} id={eventRecord._id} variant="contained" size="large"
-                                    color="error" fullWidth onClick={onClickView}>View</Button>
+
+                                {eventRecord.IsOnGoing ? (
+                                    <Button sx={{ mt: 1 }} id={eventRecord._id} variant="contained" size="large"
+                                        color="success" fullWidth onClick={onClickView}>View</Button>
+                                ) : (
+                                    <Button sx={{ mt: 1 }} id={eventRecord._id} variant="contained" size="large"
+                                        color="error" fullWidth onClick={onClickView}>View</Button>
+                                )}
 
                             </FormControl>
                         </Box>

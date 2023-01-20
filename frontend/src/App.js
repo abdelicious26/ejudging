@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/Login';
+import AboutUs from './pages/AboutUs';
 import { ToastContainer } from 'react-toastify';
 import MainPage from './pages/MainPage';
 import { styled } from '@mui/material/styles';
@@ -39,6 +40,7 @@ function App() {
         <Router>
           <Routes>
             <Route path='/login' element={<Login />} />
+            {/* <Route path='/aboutus' element={<AboutUs />} /> */}
           </Routes>
           {showMainPage()}
         </Router>

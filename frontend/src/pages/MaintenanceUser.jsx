@@ -248,9 +248,8 @@ function MaintenanceUser() {
                 axios.get(
                     `${process.env.REACT_APP_BACKEND_API}users/`,
                     { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                        if (!response) setAllUsers("No User Records")
-                        setAllUsers(response.data);
-                        console.log(response.data)
+                        if (!response) setAllUsers("No User Records");
+                        console.log(response.data);
                     })
             })
             .catch((error) => {

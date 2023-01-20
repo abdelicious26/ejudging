@@ -170,20 +170,34 @@ module.exports.updateParticipant = asyncHandler(async (request, response) => {
 // @desc    Delete Event
 // @access  Protected
 module.exports.deleteEvent = asyncHandler(async (request, response) => {
-    const addParticipant = eventModel.findById(request.params.id)
-        .then(event => {
-            if (!event) {
-                response.status(400)
-                throw new Error('Event not found')
-            }
-            eventModel.findOneAndRemove({ _id: request.params.id }, function (err) {
-                if (!err) {
-                    message.type = 'notification!';
-                }
-                else {
-                    message.type = 'error';
-                }
-            });
-        })
-    response.status(200).json(addParticipant)
+    // try {
+    //     const _deleteEvent = eventModel.findById(request.params.id)
+    //         .then(event => {
+    //             if (!event) {
+    //                 response.status(400)
+    //                 throw new Error('Event not found')
+    //             }
+    //             eventModel.findByIdAndRemove({ _id: request.params.id }, function (err) {
+    //                 if (!err) {
+    //                     message.type = 'notification!';
+    //                 }
+    //                 else {
+    //                     message.type = 'error';
+    //                     return res.status(200);
+    //                 }
+    //             });
+    //         })
+    //     response.status(200).json(_deleteEvent)
+
+    // } catch (e) {
+
+    // }
+    try {
+        const _deleteEvent = eventModel.findById(request.params.id);
+        await _deleteEvent.remove();
+        response.send({ data: true });
+    } catch (e) {
+        message.type = 'error';
+        console.log('from Delete API', e)
+    }
 })

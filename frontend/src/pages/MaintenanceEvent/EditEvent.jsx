@@ -47,7 +47,7 @@ function getStyles(name, selectedJudge, theme) {
 }
 
 
-function CreateEvent() {
+function EditEvent({ selectedEvent }) {
     const theme = useTheme();
     const navigate = useNavigate()
     const { user } = useSelector((state) => state.auth)
@@ -73,8 +73,18 @@ function CreateEvent() {
 
     const [page, setPage] = useState(0);
     const formTitles = ['Event Info', 'Criteria', 'Judges', 'Participants']
+    const [editEvent, setEditEvent] = useState({
+        name: selectedEvent.name,
+        description: selectedEvent.description,
+        venue: selectedEvent.venue,
+        scoringType: selectedEvent.scoringType
+    });
+    const [dateTime, setDateTime] = useState(selectedEvent.dateTime);
+
+    const { name, description, venue, scoringType } = editEvent
 
     useEffect(() => {
+        console.log('selectedEvent', selectedEvent)
         axios.get(
             `${process.env.REACT_APP_BACKEND_API}users/active`,
             { headers: { "Authorization": `Bearer ${token}` } })
@@ -108,6 +118,7 @@ function CreateEvent() {
                 });
                 setGetParticipant(tempParticipantList);
                 setShowParticipant(tempActiveParticipant);
+                console.log('tempActiveParticipant', tempActiveParticipant);
             })
         axios.get(
             `${process.env.REACT_APP_BACKEND_API}criteria/active`,
@@ -126,7 +137,7 @@ function CreateEvent() {
                 setGetCriteria(tempCriteriaList);
                 setShowCriteria(tempActiveCriteria);
             })
-    })
+    }, [])
 
     //@ USE EFFECT CHECKING OF CRITERIA
     useEffect(() => {
@@ -186,17 +197,6 @@ function CreateEvent() {
         setSaveParticipant(participantId)
     }, [selectedParticipant, selectedJudge])
 
-
-    const [newEvent, setNewEvent] = useState({
-        name: '',
-        description: '',
-        venue: '',
-        scoringType: ''
-    });
-    const [dateTime, setDateTime] = useState(new Date());
-
-    const { name, description, venue, scoringType } = newEvent
-
     //@ONSUBMIT -----------------------------
     const onSubmit = (e) => {
         e.preventDefault()
@@ -226,85 +226,87 @@ function CreateEvent() {
             console.log('saveJudge', saveJudge);
             console.log('saveParticipant', saveParticipant);
             console.log('saveCriteria', saveCriteria);
-            // return;
-            axios.post(
-                `${process.env.REACT_APP_BACKEND_API}events/`,
-                {
-                    name: name,
-                    description: description,
-                    venue: venue,
-                    dateTime: dateTime,
-                    scoringType: scoringType
-                },
-                { headers: { "Authorization": `Bearer ${token}` } })
-                .then((response) => {
-                    setNewEvent({
-                        name: '',
-                        description: '',
-                        venue: '',
-                        scoringType: ''
-                    })
+            return;
+            // axios.post(
+            //     `${process.env.REACT_APP_BACKEND_API}events/`,
+            //     {
+            //         name: name,
+            //         description: description,
+            //         venue: venue,
+            //         dateTime: dateTime,
+            //         scoringType: scoringType
+            //     },
+            //     { headers: { "Authorization": `Bearer ${token}` } })
+            //     .then((response) => {
+            //         setEditEvent({
+            //             name: '',
+            //             description: '',
+            //             venue: '',
+            //             scoringType: ''
+            //         })
 
-                    //@SAVING JUDGE ON DATABASE
-                    saveJudge.forEach(judge => {
-                        axios.put(
-                            `${process.env.REACT_APP_BACKEND_API}events/detail/judge/${response.data._id}`,
-                            {
-                                userId: judge.userId,
-                                orderNumber: judge.orderNumber
-                            },
-                            { headers: { "Authorization": `Bearer ${token}` } })
-                            .catch((error) => {
-                                console.log(error)
-                            })
-                    })
+            //         //@SAVING JUDGE ON DATABASE
+            //         saveJudge.forEach(judge => {
+            //             axios.put(
+            //                 `${process.env.REACT_APP_BACKEND_API}events/detail/judge/${response.data._id}`,
+            //                 {
+            //                     userId: judge.userId,
+            //                     orderNumber: judge.orderNumber
+            //                 },
+            //                 { headers: { "Authorization": `Bearer ${token}` } })
+            //                 .catch((error) => {
+            //                     console.log(error)
+            //                 })
+            //         })
 
-                    //@SAVING PARTICIPANT ON DATABASE
-                    saveParticipant.forEach(participant => {
-                        axios.put(
-                            `${process.env.REACT_APP_BACKEND_API}events/detail/participant/${response.data._id}`,
-                            {
-                                participantId: participant.participantId,
-                                orderNumber: participant.orderNumber
-                            },
-                            { headers: { "Authorization": `Bearer ${token}` } })
-                            .catch((error) => {
-                                console.log(error)
-                            })
-                    })
+            //         //@SAVING PARTICIPANT ON DATABASE
+            //         saveParticipant.forEach(participant => {
+            //             axios.put(
+            //                 `${process.env.REACT_APP_BACKEND_API}events/detail/participant/${response.data._id}`,
+            //                 {
+            //                     participantId: participant.participantId,
+            //                     orderNumber: participant.orderNumber
+            //                 },
+            //                 { headers: { "Authorization": `Bearer ${token}` } })
+            //                 .catch((error) => {
+            //                     console.log(error)
+            //                 })
+            //         })
 
-                    //@SAVING PARTICIPANT ON DATABASE
-                    saveCriteria.forEach(criteria => {
-                        axios.put(
-                            `${process.env.REACT_APP_BACKEND_API}events/detail/criteria/${response.data._id}`,
-                            {
-                                criteriaId: criteria.id,
-                                percent: parseInt(criteria.percent),
-                                orderNumber: criteria.orderNumber
-                            },
-                            { headers: { "Authorization": `Bearer ${token}` } })
-                            .catch((error) => {
-                                console.log(error)
-                            })
-                    })
+            //         //@SAVING PARTICIPANT ON DATABASE
+            //         saveCriteria.forEach(criteria => {
+            //             axios.put(
+            //                 `${process.env.REACT_APP_BACKEND_API}events/detail/criteria/${response.data._id}`,
+            //                 {
+            //                     criteriaId: criteria.id,
+            //                     percent: parseInt(criteria.percent),
+            //                     orderNumber: criteria.orderNumber
+            //                 },
+            //                 { headers: { "Authorization": `Bearer ${token}` } })
+            //                 .catch((error) => {
+            //                     console.log(error)
+            //                 })
+            //         })
 
-                    setDateTime(new Date())
-                    toast.success('New Event Created');
-                    navigate('/')
-                })
-                .catch((error) => {
-                    toast.error('Sorry, there was an error. Please make sure you fill out all the fields');
-                }
-                )
+            //         setDateTime(new Date())
+            //         toast.success('New Event Created');
+            //         // navigate('/listofevents');
+            //         window.location.reload();
+            //     })
+            //     .catch((error) => {
+            //         toast.error('Sorry, there was an error. Please make sure you fill out all the fields');
+            //     }
+            //     )
         }
     }
 
     //@ONCHANGE -----------------------------
     const onChange = (event) => {
-        setNewEvent((prevState) => ({
+        setEditEvent((prevState) => ({
             ...prevState,
             [event.target.name]: event.target.value,
         }))
+        console.log(scoringType);
     }
 
     const onChangeScore = (event) => {
@@ -335,6 +337,7 @@ function CreateEvent() {
             // On autofill we get a stringified value.
             typeof value === 'string' ? value.split(',') : value,
         );
+        console.log(selectedParticipant);
     };
 
     const handleChangeCriteria = (event) => {
@@ -438,6 +441,7 @@ function CreateEvent() {
                                         <MenuItem value=""><em>None</em></MenuItem>
                                         <MenuItem value='Ranking'>Ranking</MenuItem>
                                         <MenuItem value='Rating'>Rating</MenuItem>
+                                        <MenuItem value='Rating-Ranking'>Rating-Ranking</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Item>
@@ -480,10 +484,10 @@ function CreateEvent() {
                                             }}>
                                                 <InputLabel sx={{ fontSize: 18, fontWeight: 'bold' }}>Selected Criteria</InputLabel>
                                                 <List>
-                                                    <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onDropCriteria}>
+                                                    <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onDropCriteria} >
                                                         {saveCriteria.map((criteria) => (
                                                             <Draggable key={criteria.id}>
-                                                                <ListItem>
+                                                                <ListItem className="drag-handle">
                                                                     <ListItemText primary={criteria.name} />
                                                                     <ListItemSecondaryAction>
                                                                         <ListItemIcon className="drag-handle">
@@ -499,13 +503,46 @@ function CreateEvent() {
                                             {scoringType === 'Rating' ? (
                                                 <table>
                                                     <thead>
-
                                                         <tr>
                                                             <th>Criteria Name</th>
                                                             <th>Ratings (%)</th>
                                                         </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {
+                                                            saveCriteria.map(data => {
+                                                                return (
+                                                                    <tr key={data.id}>
+                                                                        <td>{data.name}</td>
+                                                                        <Input
+                                                                            type='number'
+                                                                            id='venue'
+                                                                            name={data.name}
+                                                                            fullWidth
+                                                                            value={data.percent}
+                                                                            onChange={onChangeScore}
+                                                                            variant="filled"
+                                                                            required
+                                                                        />
+                                                                        <td>
+                                                                        </td>
+                                                                    </tr>
+                                                                )
+                                                            })
+                                                        }
+                                                    </tbody>
+                                                </table>
+
+                                            ) : (
+                                                <></>
+                                            )}
+
+                                            {scoringType === 'Rating-Ranking' ? (
+                                                <table>
+                                                    <thead>
                                                         <tr>
                                                             <th>Criteria Name</th>
+                                                            <th>Ratings (%)</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -580,7 +617,7 @@ function CreateEvent() {
                                     <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onDropJudge}>
                                         {selectedJudge.map((judge) => (
                                             <Draggable key={judge}>
-                                                <ListItem>
+                                                <ListItem className="drag-handle">
                                                     <ListItemText primary={judge} />
                                                     <ListItemSecondaryAction>
                                                         <ListItemIcon className="drag-handle">
@@ -628,10 +665,15 @@ function CreateEvent() {
                                         </Select>
                                     </FormControl>
                                     <List>
-                                        <Container dragHandleSelector=".drag-handle" lockAxis="y" onDrop={onDropParticipant}>
+                                        <Container
+                                            dragHandleSelector=".drag-handle"
+                                            lockAxis="y"
+                                            onDrop={onDropParticipant}
+                                        >
                                             {selectedParticipant.map((participant) => (
                                                 <Draggable key={participant}>
-                                                    <ListItem>
+                                                    <ListItem className="drag-handle"
+                                                    >
                                                         <ListItemText primary={participant} />
                                                         <ListItemSecondaryAction>
                                                             <ListItemIcon className="drag-handle">
@@ -659,7 +701,7 @@ function CreateEvent() {
             <>
                 <section className='heading'>
                     <h1>
-                        Create New Event
+                        <p>EDIT EVENT</p>
                     </h1>
                 </section>
                 <Stepper activeStep={[page + 1]}>
@@ -720,4 +762,4 @@ function CreateEvent() {
     )
 }
 
-export default CreateEvent
+export default EditEvent

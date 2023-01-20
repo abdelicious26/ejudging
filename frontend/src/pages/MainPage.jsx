@@ -25,14 +25,15 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import HelpIcon from '@mui/icons-material/Help';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { logout, reset } from '../features/auth/authSlice';
 import Judge from './Judge/Judge';
-import CreateEvent from './CreateEvent/CreateEvent';
-import LatestEvents from './LatestEvents';
+import Help from './Judge/Help';
+import CreateEvent from './MaintenanceEvent/CreateEvent';
+import ListOfEvents from './ListOfEvents';
 import MaintenanceCriteria from './MaintenanceCriteria';
-import MaintenanceEvent from './MaintenanceEvent';
 import MaintenanceParticipant from './MaintenanceParticipant';
 import MaintenanceUser from './MaintenanceUser';
 import Register from './Register';
@@ -82,7 +83,7 @@ function MainPage(props) {
                 </ListItem>
                 <Divider />
                 <ListItem disablePadding>
-                    <ListItemButton onClick={() => navigate('/latestevents')}>
+                    <ListItemButton onClick={() => navigate('/listofevents')}>
                         <ListItemIcon>
                             <EventIcon />
                         </ListItemIcon>
@@ -96,14 +97,6 @@ function MainPage(props) {
                             <SettingsSuggestIcon />
                         </ListItemIcon>
                         <ListItemText>Maintenance</ListItemText>
-                    </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                    <ListItemButton onClick={() => navigate('/createevent')}>
-                        <ListItemIcon>
-                            <BorderColorIcon />
-                        </ListItemIcon>
-                        <ListItemText>Create Event</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
@@ -210,7 +203,7 @@ function MainPage(props) {
                             <MenuIcon />
                         </IconButton>
                         <Typography variant="h6" noWrap component="div">
-                            E-Judging For Tabulation System of Saint Francis of Assisi College Alabang
+                            E-Judging: a Tabulation System of Saint Francis of Assisi College Alabang
                         </Typography>
                     </Toolbar>
                 </AppBar>
@@ -254,15 +247,16 @@ function MainPage(props) {
                     <Toolbar />
                     <Routes>
                         <Route path='/' element={<Dashboard />} />
-                        <Route path='/latestevents' element={<LatestEvents />} />
+                        <Route path='/listofevents' element={<ListOfEvents />} />
                         <Route path='/createevent' element={<CreateEvent />} />
                         <Route path='/criteria' element={<MaintenanceCriteria />} />
-                        <Route path='/events' element={<MaintenanceEvent />} />
                         <Route path='/participants' element={<MaintenanceParticipant />} />
                         <Route path='/users' element={<MaintenanceUser />} />
                         <Route path='/register' element={<Register />} />
                         <Route path='/judge' element={<Judge />} />
                         <Route path='/myaccount' element={<MyAccount />} />
+                        <Route path='/usermanual' element={<Help />} />
+
                     </Routes>
                 </Box>
             </Box>
@@ -292,7 +286,7 @@ function MainPage(props) {
                             <MenuIcon />
                         </IconButton>
                         <Typography variant="h6" noWrap component="div">
-                            E-Judging For Tabulation System of Saint Francis of Assisi College Alabang
+                            E-Judging: a Tabulation System of Saint Francis of Assisi College Alabang
                         </Typography>
                     </Toolbar>
                 </AppBar>
@@ -337,6 +331,7 @@ function MainPage(props) {
                         <Route path='/' element={<Dashboard />} />
                         <Route path='/judge' element={<Judge />} />
                         <Route path='/myaccount' element={<MyAccount />} />
+                        <Route path='/usermanual' element={<Help />} />
                     </Routes>
                 </Box>
             </Box>

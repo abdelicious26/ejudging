@@ -24,6 +24,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^4.6.0",
     "mongoose": "^6.3.4",
+    "react-draggable-list": "^4.1.0",
     "react-smooth-dnd": "^0.11.1"
   },
   "devDependencies": {

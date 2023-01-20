@@ -39,7 +39,7 @@ const ScoreSchema = new mongoose.Schema({
         default: true,
         required: [true, "IsActive field is required"]
     }
-},{
+}, {
     timestamps: true,
 })
 module.exports = mongoose.model('Score', ScoreSchema);

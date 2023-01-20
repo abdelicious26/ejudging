@@ -218,3 +218,9 @@ h3 {
 .printable {
   margin: 24px;
 }
+
+.draggable {
+  /* top: auto !important;
+  left: auto !important; */
+  position: static;
+}

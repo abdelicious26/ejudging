@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import Modal from 'react-modal'
-import ModalUI from '@mui/material/Modal';
+import Modal from '@mui/material/Modal';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -28,6 +27,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import Divider from '@mui/material/Divider';
 import { format } from "date-fns";
 import ReactToPrint from "react-to-print";
+import AddIcon from '@mui/icons-material/Add';
+
+import CreateEvent from './MaintenanceEvent/CreateEvent';
+import EditEvent from './MaintenanceEvent/EditEvent';
+import EventResultRating from './EventResultRating';
+import EventResultRanking from './EventResultRanking';
+import EventResultRatingRanking from './EventResultRatingRanking';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -86,10 +92,10 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
+    position: 'fixed',
+    top: '5%',
+    left: '5%',
+    // transform: 'translate(-50%, -50%)',
     width: '90%',
     height: '90%',
     bgcolor: 'background.paper',
@@ -126,8 +132,7 @@ const modalStyle = {
     display: 'block'
 };
 
-Modal.setAppElement('#root')
-function LatestEvents() {
+function ListOfEvents() {
     const [allEvents, setAllEvents] = useState([]);
     const [selectedEvent, setSelectedEvent] = useState({});
     const [allParticipants, setAllParticipants] = useState([]);
@@ -135,8 +140,11 @@ function LatestEvents() {
     const [allJudge, setAllJudge] = useState([]);
     const [selectedJudge, setSelectedJudge] = useState([]);
     const [allCriteria, setAllCriteria] = useState([]);
+    const [allEventScores, setAllEventScores] = useState([]);
     const [selectedCriteria, setSelectedCriteria] = useState([]);
-    const [modal, setModal] = useState(false);
+    const [viewModal, setViewModal] = useState(false);
+    const [addModal, setAddModal] = useState(false);
+    const [editModal, setEditModal] = useState(false);
     const [resultModal, setResultModal] = useState(false);
     const [rankPerJudge, setRankPerJudge] = useState([]);
     const [eventResult, setEventResult] = useState([]);
@@ -184,7 +192,6 @@ function LatestEvents() {
     }, [])
 
     useEffect(() => {
-
         const isEmpty = Object.keys(selectedEvent).length === 0;
         if (!isEmpty) {
             //@ GET CRITERIA WITH NAME
@@ -218,6 +225,7 @@ function LatestEvents() {
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) return
                     AllEventScore = response.data
+                    setAllEventScores(AllEventScore);
                     AllEventScore = AllEventScore.map(result => {
                         const found = allCriteria.find(element => element._id === result.criteria);
                         const percent = selectedEvent.criteria.find(element => element.criteriaId === found._id);
@@ -291,64 +299,8 @@ function LatestEvents() {
 
                         return { ...judge, scorePerParticipant: scorePerParticipant, participantsRank: rankPerParticipant };
                     })
-
                     setRankPerJudge(JudgeWithRanking);
-                    // -------------------------------------------------------
-                    //SET SCORE PER PARTICIPANT
-                    let ParticipantsWithRank = []
-                    ParticipantsWithName.forEach(participant => {
-                        let participantRecord = [];
-                        AllEventScore.forEach(data => {
-                            if (participant._id === data.participant) participantRecord.push(data)
-                        })
-
-                        let tempParticipantRecord = participant
-                        tempParticipantRecord.score = participantRecord
-                        ParticipantsWithRank.push(tempParticipantRecord)
-                    })
-
-                    ParticipantsWithRank = ParticipantsWithRank.map(participant => {
-                        let _rankPerJudge = [];
-                        let tempSumOfRank = 0;
-                        JudgeWithRanking.forEach(judge => {
-                            let ranking = {};
-                            let participantScore = judge.participantsRank.find(element => element.participantId === participant._id)
-                            ranking.judge = judge;
-                            ranking.score = participantScore.score;
-                            ranking.rank = participantScore.rank;
-                            tempSumOfRank += ranking.rank;
-                            _rankPerJudge.push(ranking);
-                        })
-                        return { ...participant, rankingPerJudge: _rankPerJudge, sumOfRank: tempSumOfRank }
-                    })
-                    ParticipantsWithRank = ParticipantsWithRank.sort((a, b) => parseFloat(a.sumOfRank) - parseFloat(b.sumOfRank));
-
-                    let participantsWithFinalRanking = []
-                    let rankCount = 1;
-                    let rankOfParticipants = ParticipantsWithRank.map(score => {
-                        return score.sumOfRank;
-                    })
-                    rankOfParticipants = [...new Set(rankOfParticipants)];
-                    rankOfParticipants.sort(function (a, b) { return a - b });
-                    rankOfParticipants.forEach(score => {
-                        let participants = ParticipantsWithRank.filter(element => element.sumOfRank === score);
-                        let rank;
-                        if (participants.length == 1) {
-                            rank = rankCount;
-                            rankCount += participants.length;
-                        }
-                        else if (participants.length > 1) {
-                            let tempRankCountOld = rankCount;
-                            rankCount += participants.length;
-                            rank = (rankCount - 1 + tempRankCountOld) / participants.length;
-                        }
-                        participants.forEach(participant => {
-                            participant.finalRank = parseFloat(rank.toFixed(2));
-                            participantsWithFinalRanking.push(participant);
-                        })
-                    })
-                    setEventResult(participantsWithFinalRanking)
-                    // -------------------------------------------------------
+                    console.log('JudgeWithRanking', JudgeWithRanking)
                 })
         }
     }, [selectedEvent])
@@ -367,37 +319,42 @@ function LatestEvents() {
     const onClickView = (event) => {
         const found = allEvents.find(({ _id }) => _id === event.target.id);
         if (found) {
-            setModal(true)
+            setViewModal(true)
             setSelectedEvent(found)
         }
     }
 
     const onClickEdit = (event) => {
-        setModal(true)
+        setEditModal(true)
         const found = allEvents.find(element => element._id === event.target.id);
         setSelectedEvent(found)
     }
 
     const onClickDelete = (event) => {
-        let decision = window.confirm("You are about to delete the event. Are you sure you want to proceed? This is action cannot be undone.");
+        let decision = window.confirm("You are about to delete the event. Are you sure you want to proceed? This action cannot be undone.");
         if (decision) {
-            console.log('Event Id =>', event.target.id);
-            // axios.delete(
-            //     `${process.env.REACT_APP_BACKEND_API}events/${event.target.id}`,
-            //     null,
-            //     {
-            //         headers: {
-            //             "Authorization": `Bearer ${token}`,
-            //             'Access-Control-Allow-Origin': '*',
-            //         }
-            //     })
-            //     .then((response) => {
-            //         toast.success('You have deleted the Event.');
-            //     })
-            //     .catch((error) => {
-            //         toast.error('There was an error deleting the Event.');
-            //         // toast.error(error.response.data);
-            //     })
+            axios.delete(
+                `${process.env.REACT_APP_BACKEND_API}events/${event.target.id}`,
+                null,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        'Access-Control-Allow-Origin': '*',
+                    }
+                })
+                .then(() => {
+                    toast.success('You have deleted the Event.');
+                    const _tempAllEvents = allEvents.filter(_events => {
+                        return _events._id !== event.target.id
+                    })
+                    console.log('_tempAllEvents', _tempAllEvents)
+                    setAllEvents(_tempAllEvents);
+
+                })
+                .catch((error) => {
+                    toast.error('There was an error deleting the Event.');
+                    console.log(error);
+                })
         }
     }
 
@@ -426,6 +383,14 @@ function LatestEvents() {
                     ...prevState,
                     ['IsOnGoing']: _tempCurrentStatus,
                 }))
+
+                let _allEvents = allEvents.map(_event => {
+                    if (_event._id === selectedEvent._id)
+                        return { ..._event, IsOnGoing: _tempCurrentStatus }
+                    else
+                        return _event
+                })
+                setAllEvents(_allEvents);
             })
             .catch((error) => {
                 toast.error(error.response.data);
@@ -442,11 +407,62 @@ function LatestEvents() {
         }
     };
 
-    //@SHOW FORMS
+
+    const onClickCloseAddModal = () => {
+        let decision = window.confirm("You are about to close this page. Are you sure you want to proceed? Any unsaved details will not be saved.");
+        if (decision)
+            setAddModal(false);
+    }
+
+    const onClickCloseEditModal = () => {
+        let decision = window.confirm("You are about to close this page. Are you sure you want to proceed? Any unsaved details will not be saved.");
+        if (decision)
+            setEditModal(false);
+    }
+
+    //@MODAL OF RESULT
+    const showEventResultScore = () => {
+        if (selectedEvent.scoringType === 'Rating') {
+            return <div>
+                <EventResultRating
+                    selectedEventFromParent={selectedEvent}
+                    eventScoresFromParent={allEventScores}
+                    allEventsFromParent={allEvents}
+                    allJudgeFromParent={allJudge}
+                    allCriteriaFromParent={allCriteria}
+                    allParticipantsFromParent={allParticipants}
+                />
+            </div>
+        }
+
+        else if (selectedEvent.scoringType === 'Ranking') {
+            return <div>
+                <EventResultRanking
+                    selectedEventFromParent={selectedEvent}
+                    eventScoresFromParent={allEventScores}
+                    allJudgeFromParent={allJudge}
+                    allCriteriaFromParent={allCriteria}
+                    allParticipantsFromParent={allParticipants}
+                />
+            </div>
+        }
+        else if (selectedEvent.scoringType === 'Rating-Ranking') {
+            return <div>
+                <EventResultRatingRanking
+                    selectedEventFromParent={selectedEvent}
+                    eventScoresFromParent={allEventScores}
+                    allJudgeFromParent={allJudge}
+                    allCriteriaFromParent={allCriteria}
+                    allParticipantsFromParent={allParticipants}
+                />
+            </div>
+        }
+    }
+
     const showEventResult = () => {
         return (
             <>
-                <ModalUI
+                <Modal
                     open={resultModal}
                     onClose={() => setResultModal(false)}
                     aria-labelledby="child-modal-title"
@@ -470,70 +486,10 @@ function LatestEvents() {
                                     <p id="child-modal-title"><b>Event Name: </b>{selectedEvent.name}</p>
                                     <p id="child-modal-title"><b>Description: </b>{selectedEvent.description}</p>
                                     <p id="child-modal-title"><b>Venue: </b>{selectedEvent.venue}</p>
+                                    <p id="child-modal-title"><b>Scoring Type: </b>{selectedEvent.scoringType}</p>
                                     <p id="child-modal-title"><b>Date and Time: </b> {formatDateAndTime(selectedEvent.dateTime)}</p>
-                                    {/* <TableContainer component={Paper}>
-                                        <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell align="left">Participant Name</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {eventResult.map((row) => (
-                                                    <TableRow
-                                                        key={row._id}
-                                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                    >
-                                                        <TableCell align="left">{row.name}</TableCell>
-                                                        {row.rankingPerJudge.map((rankingPerJudge) => (
-                                                            <TableCell key={rankingPerJudge.judge._id} align="left">
-                                                                <TextField
-                                                                    name={rankingPerJudge._id}
-                                                                    label={`${rankingPerJudge.judge.firstName} ${rankingPerJudge.judge.lastName}`}
-                                                                    value={rankingPerJudge.rank}
-                                                                    // type="number"
-                                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                                    InputLabelProps={{
-                                                                        shrink: true,
-                                                                    }}
-                                                                    variant="outlined"
-                                                                    readOnly
-                                                                />
-                                                            </TableCell>
-                                                        ))}
-                                                        <TableCell align="left">
-                                                            <TextField
-                                                                label='Total Points'
-                                                                value={row.sumOfRank}
-                                                                // type="number"
-                                                                inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                                InputLabelProps={{
-                                                                    shrink: true,
-                                                                }}
-                                                                variant="filled"
-                                                                readOnly
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell align="left">
-                                                            <TextField
-                                                                label='Final Ranking'
-                                                                value={row.finalRank}
-                                                                // type="number"
-                                                                inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                                InputLabelProps={{
-                                                                    shrink: true,
-                                                                }}
-                                                                variant="filled"
-                                                                readOnly
-                                                            />
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer> */}
 
-                                    <TableContainer component={Paper} sx={{ my: 1 }}>
+                                    {/* <TableContainer component={Paper} sx={{ my: 1 }}>
                                         <Table sx={{ minWidth: 650 }} aria-label="customized table">
                                             <TableHead>
                                                 <TableRow>
@@ -554,71 +510,51 @@ function LatestEvents() {
                                                 ))}
                                             </TableBody>
                                         </Table>
-                                    </TableContainer>
+                                    </TableContainer> */}
+                                    {showEventResultScore()}
                                 </Box>
-                                {/* TABLE FOR PARTICIPANT RANK PER JUDGE */}
-                                <Divider />
-                                <h3>Score per Judge:</h3>
 
-                                {rankPerJudge.map((judge) => (
-                                    // <h4></h4>
-                                    <div key={judge._id}>
-                                        {/* <h4> Judge: {judge.firstName} {judge.lastName}</h4> */}
-
-                                        <p id="child-modal-title">Judge Name: <b>{judge.firstName} {judge.lastName}</b></p>
-                                        < TableContainer component={Paper} sx={{ mb: 3 }}>
-                                            <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-                                                <TableHead>
-                                                    <StyledTableRow>
-                                                        <StyledTableCellPerJudge>Participant Name</StyledTableCellPerJudge>
-                                                        <StyledTableCellPerJudge align="right">Total Score</StyledTableCellPerJudge>
-                                                        <StyledTableCellPerJudge align="right">Rank</StyledTableCellPerJudge>
-                                                    </StyledTableRow>
-                                                </TableHead>
-                                                <TableBody>
-                                                    {judge.participantsRank.map((participant) => (
-                                                        <StyledTableRow
-                                                            key={participant.participant._id}
-                                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                        >
-                                                            <StyledTableCellPerJudge align="left">{participant.participant.name}</StyledTableCellPerJudge>
-                                                            <StyledTableCellPerJudge align="right">{participant.score}</StyledTableCellPerJudge>
-                                                            <StyledTableCellPerJudge align="right">{participant.rank}</StyledTableCellPerJudge>
-                                                            {/* <TableCell align="left">
-                                                                {participant.participant.name}
-                                                            </TableCell>
-                                                            <TableCell align="left">
-                                                                <TextField
-                                                                    label='Total Score'
-                                                                    value={participant.score}
-                                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                                    InputLabelProps={{
-                                                                        shrink: true,
-                                                                    }}
-                                                                    variant="outlined"
-                                                                    readOnly
-                                                                />
-                                                            </TableCell>
-                                                            <TableCell align="left">
-                                                                <TextField
-                                                                    label='Rank'
-                                                                    value={participant.rank}
-                                                                    inputProps={{ inputMode: 'numeric', pattern: '[1-100]*' }}
-                                                                    InputLabelProps={{
-                                                                        shrink: true,
-                                                                    }}
-                                                                    variant="filled"
-                                                                    readOnly
-                                                                />
-                                                            </TableCell> */}
-                                                        </StyledTableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </TableContainer>
+                                {selectedEvent.scoringType !== 'Ranking' ? (
+                                    <>
                                         <Divider />
-                                    </div>
-                                ))}
+                                        <h3>Score per Judge:</h3>
+
+                                        {rankPerJudge.map((judge) => (
+                                            // <h4></h4>
+                                            <div key={judge._id}>
+                                                {/* <h4> Judge: {judge.firstName} {judge.lastName}</h4> */}
+
+                                                <p id="child-modal-title">Judge Name: <b>{judge.firstName} {judge.lastName}</b></p>
+                                                < TableContainer component={Paper} sx={{ mb: 3 }}>
+                                                    <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                                                        <TableHead>
+                                                            <StyledTableRow>
+                                                                <StyledTableCellPerJudge>Participant Name</StyledTableCellPerJudge>
+                                                                <StyledTableCellPerJudge align="right">Total Score</StyledTableCellPerJudge>
+                                                                <StyledTableCellPerJudge align="right">Rank</StyledTableCellPerJudge>
+                                                            </StyledTableRow>
+                                                        </TableHead>
+                                                        <TableBody>
+                                                            {judge.participantsRank.map((participant) => (
+                                                                <StyledTableRow
+                                                                    key={participant.participant._id}
+                                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                                >
+                                                                    <StyledTableCellPerJudge align="left">{participant.participant.name}</StyledTableCellPerJudge>
+                                                                    <StyledTableCellPerJudge align="right">{participant.score}</StyledTableCellPerJudge>
+                                                                    <StyledTableCellPerJudge align="right">{participant.rank}</StyledTableCellPerJudge>
+                                                                </StyledTableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </TableContainer>
+                                                <Divider />
+                                            </div>
+                                        ))}
+                                    </>
+                                ) : (
+                                    <></>
+                                )}
                             </Box>
 
                             <Box sx={{ mt: 2 }}>
@@ -631,18 +567,18 @@ function LatestEvents() {
 
                         </Box>
                     </div>
-                </ModalUI>
+                </Modal>
             </>
         )
     }
 
-
-    const ShowEvent = () => {
+    //@MODAL OF EVENT DETAIL
+    const ShowEventDetail = () => {
         return (
             <>
-                <ModalUI
-                    open={modal}
-                    onClose={() => setModal(false)}
+                <Modal
+                    open={viewModal}
+                    onClose={() => setViewModal(false)}
                     aria-labelledby="parent-modal-title"
                     aria-describedby="parent-modal-description"
                     className={modalStyle}
@@ -656,7 +592,7 @@ function LatestEvents() {
                             justifyContent="flex-end"
                             alignItems="flex-end"
                         >
-                            <IconButton color="error" aria-label="close modal" onClick={() => setModal(false)}>
+                            <IconButton color="error" aria-label="close modal" onClick={() => setViewModal(false)}>
                                 <CloseIcon />
                             </IconButton>
                         </Box>
@@ -741,7 +677,7 @@ function LatestEvents() {
                                 <TableContainer component={Paper} sx={{ mb: 3 }}>
                                     <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                         <TableHead>
-                                            {selectedEvent.scoringType === "Rating" ?
+                                            {selectedEvent.scoringType !== "Ranking" ?
                                                 (
                                                     <StyledTableRow>
 
@@ -758,7 +694,7 @@ function LatestEvents() {
                                                 )
                                             }
                                         </TableHead>
-                                        {selectedEvent.scoringType === "Rating" ?
+                                        {selectedEvent.scoringType !== "Ranking" ?
                                             (
                                                 <TableBody>
                                                     {selectedCriteria.map((row) => (
@@ -854,16 +790,78 @@ function LatestEvents() {
                                 </TableContainer>
                             </Box>
                         </section>
-                        <Button onClick={() => setModal(false)} sx={{ mt: 2 }} variant="outlined" color="error">
+                        <Button onClick={() => setViewModal(false)} sx={{ mt: 2 }} variant="outlined" color="error">
                             Close
                         </Button>
                         {showEventResult()}
                     </Box>
-                </ModalUI>
+                </Modal>
             </>
         )
     }
 
+    //@MODAL OF CREATE EVENT
+    const ShowCreateEvent = () => {
+        return (
+            <>
+                <Modal
+                    open={addModal}
+                    onClose={onClickCloseAddModal}
+                    aria-labelledby="parent-modal-title"
+                    aria-describedby="parent-modal-description"
+                    className={modalStyle}
+                >
+                    <Box sx={{ ...style, border: '4px solid #D22B2B', }}>
+                        <Box
+                            m={1}
+                            //margin
+                            display="flex"
+                            justifyContent="flex-end"
+                            alignItems="flex-end"
+                        >
+                            <IconButton color="error" aria-label="close modal" onClick={onClickCloseAddModal}>
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
+                        <CreateEvent />
+                    </Box>
+                </Modal>
+            </>
+        )
+    }
+
+
+    //@MODAL OF CREATE EVENT
+    const ShowEditEvent = () => {
+        return (
+            <>
+                <Modal
+                    open={editModal}
+                    onClose={onClickCloseEditModal}
+                    aria-labelledby="parent-modal-title"
+                    aria-describedby="parent-modal-description"
+                    className={modalStyle}
+                >
+                    <Box sx={{ ...style, border: '4px solid #D22B2B', }}>
+                        <Box
+                            m={1}
+                            //margin
+                            display="flex"
+                            justifyContent="flex-end"
+                            alignItems="flex-end"
+                        >
+                            <IconButton color="error" aria-label="close modal" onClick={onClickCloseEditModal}>
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
+                        <EditEvent selectedEvent={selectedEvent} />
+                    </Box>
+                </Modal>
+            </>
+        )
+    }
+
+    //@RETURN UI
     return (
         <>
             <Grid container spacing={2}>
@@ -873,6 +871,11 @@ function LatestEvents() {
                             <h1>
                                 List of Events
                             </h1>
+                            <Grid container justify="flex-end">
+                                <Button variant="contained" color="success" size="large" onClick={() => setAddModal(true)} startIcon={<AddIcon />}>
+                                    Create New Event
+                                </Button>
+                            </Grid>
                         </section>
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
@@ -931,10 +934,12 @@ function LatestEvents() {
             </Grid>
 
 
-            {ShowEvent()}
+            {ShowEventDetail()}
+            {ShowCreateEvent()}
+            {ShowEditEvent()}
         </>
     )
 }
 
 
-export default LatestEvents
+export default ListOfEvents

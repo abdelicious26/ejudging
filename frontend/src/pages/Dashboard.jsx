@@ -4,6 +4,8 @@ import { useSelector } from 'react-redux'
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import axios from 'axios';
+import IconButton from '@mui/material/IconButton';
+import HelpIcon from '@mui/icons-material/Help';
 
 
 import { Box, Button } from '@mui/material';
@@ -16,7 +18,6 @@ function Dashboard() {
     const [allEvents, setAllEvents] = useState([]);
     let token
     useEffect(() => {
-        console.log(process.env.SECRET)
         if (!user) {
             navigate('/login')
         }
@@ -29,16 +30,13 @@ function Dashboard() {
         axios.get(
             `${process.env.REACT_APP_BACKEND_API}events/`,
             { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
-                //console.log(response.data)
                 if (response) {
-                    console.log('binasa')
                     setAllEvents("No Event Records")
                     let temporaryList = [];
                     response.data.forEach(element => {
                         let temporaryRecord = {};
                         temporaryRecord.title = element.name
                         temporaryRecord.date = element.dateTime
-                        console.log(temporaryRecord)
                         temporaryList.push(temporaryRecord)
                     });
                     setAllEvents(temporaryList);
@@ -52,6 +50,19 @@ function Dashboard() {
             <Button variant="contained" color="success" size="large">
                 Events Created: {allEvents.length}
             </Button>
+
+            <Box
+                m={1}
+                //margin
+                display="flex"
+                justifyContent="flex-end"
+                alignItems="flex-end"
+            >
+                <Button variant="contained" color="primary" onClick={() => navigate('/usermanual')} endIcon={<HelpIcon />} size='large'>
+                    User Guide
+                </Button>
+            </Box>
+
             <div className="App">
                 <FullCalendar
                     defaultView="dayGridMonth"
