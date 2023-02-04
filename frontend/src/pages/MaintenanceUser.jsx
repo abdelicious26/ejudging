@@ -212,7 +212,6 @@ function MaintenanceUser() {
                 }
             })
             .then((response) => {
-                toast.success('Save Success');
                 setNewUser({
                     newFirstName: '',
                     newLastName: '',
@@ -257,7 +256,6 @@ function MaintenanceUser() {
             },
             { headers: { "Authorization": `Bearer ${token}` } })
             .then((response) => {
-                toast.success('Update Success');
                 setUpdateUser({
                     updateId: '',
                     updateFirstName: '',
@@ -296,7 +294,6 @@ function MaintenanceUser() {
                 },
                 { headers: { "Authorization": `Bearer ${token}` } })
                 .then((response) => {
-                    toast.success(`Successfully reset the user's password`);
                 })
                 .catch((error) => {
                     toast.error('Sorry, there was an error')

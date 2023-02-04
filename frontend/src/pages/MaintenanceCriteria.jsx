@@ -156,8 +156,6 @@ function MaintenanceCriteria() {
             },
             { headers: { "Authorization": `Bearer ${token}` } })
             .then((response) => {
-                console.log('success')
-                toast.success('Save Success');
                 setNewCriteria({
                     newName: '',
                     newDescription: ''
@@ -177,11 +175,9 @@ function MaintenanceCriteria() {
     }
     const onSubmitUpdate = (e) => {
         e.preventDefault()
-        let URL = 'http://localhost:5000/api/criteria/' + updateId
         if (!updateId) {
             return toast.error('Please select a criteria record');
         }
-        console.log(URL)
         axios.put(
             `${process.env.REACT_APP_BACKEND_API}criteria/${updateId}`,
             {
@@ -191,8 +187,6 @@ function MaintenanceCriteria() {
             },
             { headers: { "Authorization": `Bearer ${token}` } })
             .then((response) => {
-                console.log('success')
-                toast.success('Update Success');
                 setUpdateCriteria({
                     updateId: '',
                     updateName: '',

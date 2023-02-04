@@ -163,8 +163,6 @@ function MaintenanceParticipant() {
             },
             { headers: { "Authorization": `Bearer ${token}` } })
             .then((response) => {
-                console.log('success')
-                toast.success('Save Success');
                 setNewParticipant({
                     newName: '',
                     newDescription: ''
@@ -199,8 +197,6 @@ function MaintenanceParticipant() {
             },
             { headers: { "Authorization": `Bearer ${token}` } })
             .then((response) => {
-                console.log('success')
-                toast.success('Update Success');
                 setUpdateParticipant({
                     updateId: '',
                     updateName: '',
