@@ -16,6 +16,8 @@ function Dashboard() {
     const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const [allEvents, setAllEvents] = useState([]);
+    const [allCreatedEvents, setAllCreatedEvents] = useState([]);
+    const [allActiveEvents, setAllActiveEvents] = useState([]);
     let token
     useEffect(() => {
         if (!user) {
@@ -40,15 +42,20 @@ function Dashboard() {
                         temporaryList.push(temporaryRecord)
                     });
                     setAllEvents(temporaryList);
-                    console.log(temporaryList);
+                    setAllCreatedEvents(response.data);
+                    let _activeEvents = response.data.filter(events => events.IsOnGoing === true)
+                    setAllActiveEvents(_activeEvents);
                 }
             })
     }, [user, navigate])
 
     return (
         <>
-            <Button variant="contained" color="success" size="large">
+            <Button variant="contained" color="primary" size="large" sx={{ mr: 1, mb: 1 }}>
                 Events Created: {allEvents.length}
+            </Button>
+            <Button variant="contained" color="success" size="large" sx={{ mr: 1, mb: 1 }}>
+                Active Events: {allActiveEvents.length}
             </Button>
 
             <Box

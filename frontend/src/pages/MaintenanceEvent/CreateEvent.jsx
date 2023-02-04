@@ -221,12 +221,13 @@ function CreateEvent() {
                     isError = true;
                     _percentError = true;
                 }
-                _totalPercent += res.percent;
+                _totalPercent += parseInt(res.percent);
             })
             if (_percentError) {
                 isError = true;
                 toast.error('The Ratings field only accepts 1-100 value');
             }
+            console.log('_totalPercent', _totalPercent);
             if (_totalPercent !== 100) {
                 isError = true;
                 toast.error('The Total Rating of all Criteria should be 100%');
@@ -487,7 +488,7 @@ function CreateEvent() {
                                             </Select>
 
                                         </FormControl>
-                                        <Button hidden={true} variant="contained">Add</Button>
+
                                     </Item>
                                 </Grid>
                                 <Grid item xs={12}>
@@ -724,7 +725,7 @@ function CreateEvent() {
                         <Step key={label}
                             sx={{
                                 '& .MuiStepLabel-root .Mui-completed': {
-                                    color: 'red', // circle color (COMPLETED)
+                                    color: '#1769aa', // circle color (COMPLETED)
                                 },
                                 '& .MuiStepLabel-label.Mui-completed.MuiStepLabel-alternativeLabel':
                                 {

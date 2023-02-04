@@ -1,6 +1,7 @@
 import { useState, useEffect, componentDidMount } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import Spinner from '../components/Spinner'
 import axios from 'axios'
 import { toast } from 'react-toastify'
@@ -11,7 +12,6 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
@@ -26,6 +26,29 @@ const Item = styled(Paper)(({ theme }) => ({
     padding: theme.spacing(1),
     textAlign: 'center',
     color: theme.palette.text.secondary,
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    '&:nth-of-type(odd)': {
+        backgroundColor: '#c8e4fb',
+    },
+    // hide last border
+    '&:last-child td, &:last-child th': {
+        border: 0,
+    },
+}));
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+    [`&.${tableCellClasses.head}`]: {
+        backgroundColor: '#1769aa',
+        color: theme.palette.common.white,
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    [`&.${tableCellClasses.body}`]: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
 }));
 
 Modal.setAppElement('#root')
@@ -212,22 +235,22 @@ function MaintenanceCriteria() {
                             <TableContainer component={Paper}>
                                 <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                     <TableHead>
-                                        <TableRow>
-                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Name</TableCell>
-                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</TableCell>
-                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Active?</TableCell>
-                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Actions</TableCell>
-                                        </TableRow>
+                                        <StyledTableRow>
+                                            <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Name</StyledTableCell>
+                                            <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</StyledTableCell>
+                                            <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Active?</StyledTableCell>
+                                            <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Actions</StyledTableCell>
+                                        </StyledTableRow>
                                     </TableHead>
                                     <TableBody>
                                         {allCriteria.map((row) => (
-                                            <TableRow
+                                            <StyledTableRow
                                                 key={row._id}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                <TableCell align="left">{row.name}</TableCell>
-                                                <TableCell align="left">{row.description}</TableCell>
-                                                <TableCell align="left">
+                                                <StyledTableCell align="left">{row.name}</StyledTableCell>
+                                                <StyledTableCell align="left">{row.description}</StyledTableCell>
+                                                <StyledTableCell align="left">
                                                     <input
                                                         type='checkbox'
                                                         className='form-control'
@@ -236,15 +259,15 @@ function MaintenanceCriteria() {
                                                         placeholder='Enter your username'
                                                         checked={row.isActive}
                                                         readOnly />
-                                                </TableCell>
-                                                <TableCell align="left">
+                                                </StyledTableCell>
+                                                <StyledTableCell align="left">
                                                     {/* <button onClick={openRecord} id={row._id} name={row.name} className='btn'>View</button> */}
                                                     {/* <button className='btn' onClick={openRecord} id={row._id} name={row.name}>
                                                         View
                                                     </button> */}
                                                     <Button variant="contained" color="success" onClick={openRecord} id={row._id} name={row.name} startIcon={<EditIcon />}> Edit</Button>
-                                                </TableCell>
-                                            </TableRow>
+                                                </StyledTableCell>
+                                            </StyledTableRow>
                                         ))}
                                     </TableBody>
                                 </Table>

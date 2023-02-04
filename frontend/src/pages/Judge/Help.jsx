@@ -11,9 +11,6 @@ function Help() {
         if (!user) {
             navigate('/login')
         }
-        else if (user && user.recordType !== 'admin') {
-            navigate('/judge')
-        }
         else {
             token = user.token
         }

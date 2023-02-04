@@ -45,7 +45,7 @@ const Item = styled(Paper)(({ theme }) => ({
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
-        backgroundColor: theme.palette.error.dark,
+        backgroundColor: '#1769aa',
         color: theme.palette.common.white,
         fontWeight: 'bold',
         fontSize: 16,
@@ -58,7 +58,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 const StyledTableCellPerJudge = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
-        backgroundColor: theme.palette.warning.main,
+        backgroundColor: '#2196f3',
         color: theme.palette.common.white,
         fontWeight: 'bold',
         fontSize: 16,
@@ -70,7 +70,7 @@ const StyledTableCellPerJudge = styled(TableCell)(({ theme }) => ({
 
 const StyledTableCellView = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
-        backgroundColor: theme.palette.error.main,
+        backgroundColor: '#1769aa',
         color: theme.palette.common.white,
         fontWeight: 'bold',
         fontSize: 16,
@@ -83,7 +83,7 @@ const StyledTableCellView = styled(TableCell)(({ theme }) => ({
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: '#c8e4fb',
     },
     // hide last border
     '&:last-child td, &:last-child th': {
@@ -555,9 +555,18 @@ function ListOfEvents() {
                                 ) : (
                                     <></>
                                 )}
+                                <Box sx={{ mt: 0 }}>
+                                    <p>Signature:</p>
+                                    {selectedJudge.map((judge) => (
+                                        // <h4></h4>
+                                        <Box key={judge._id} sx={{ mt: 5 }}>
+                                            <p class='signatureName'><b>{judge.firstName} {judge.lastName}</b></p>
+                                        </Box>
+                                    ))}
+                                </Box>
                             </Box>
 
-                            <Box sx={{ mt: 2 }}>
+                            <Box sx={{ mt: 5 }}>
                                 <Button onClick={() => setResultModal(false)} variant='outlined' color='error' sx={{ mr: 1 }}>Close Result</Button>
                                 <ReactToPrint
                                     trigger={() => <Button startIcon={<Print />} variant='contained' color='success'>Print Result</Button>}
@@ -661,7 +670,7 @@ function ListOfEvents() {
                                     Activate The Event
                                 </Button>
                             )}
-                            <Button onClick={() => { setResultModal(true) }} variant="outlined" color="success" startIcon={<PreviewIcon />}>
+                            <Button onClick={() => { setResultModal(true) }} variant="outlined" color="primary" startIcon={<PreviewIcon />}>
                                 View Result
                             </Button>
                         </section>
@@ -811,7 +820,7 @@ function ListOfEvents() {
                     aria-describedby="parent-modal-description"
                     className={modalStyle}
                 >
-                    <Box sx={{ ...style, border: '4px solid #D22B2B', }}>
+                    <Box sx={{ ...style, border: '3px solid #1769aa', }}>
                         <Box
                             m={1}
                             //margin
@@ -842,7 +851,7 @@ function ListOfEvents() {
                     aria-describedby="parent-modal-description"
                     className={modalStyle}
                 >
-                    <Box sx={{ ...style, border: '4px solid #D22B2B', }}>
+                    <Box sx={{ ...style, border: '3px solid #1769aa', }}>
                         <Box
                             m={1}
                             //margin
@@ -880,28 +889,28 @@ function ListOfEvents() {
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                 <TableHead>
-                                    <TableRow>
-                                        <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }} >Event Name</TableCell>
-                                        <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</TableCell>
-                                        <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Venue</TableCell>
-                                        <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Scoring Type</TableCell>
-                                        <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Date & Time</TableCell>
-                                        <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Active?</TableCell>
-                                        <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Actions</TableCell>
-                                    </TableRow>
+                                    <StyledTableRow>
+                                        <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }} >Event Name</StyledTableCell>
+                                        <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Description</StyledTableCell>
+                                        <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Venue</StyledTableCell>
+                                        <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Scoring Type</StyledTableCell>
+                                        <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Date & Time</StyledTableCell>
+                                        <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Active?</StyledTableCell>
+                                        <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Actions</StyledTableCell>
+                                    </StyledTableRow>
                                 </TableHead>
                                 <TableBody>
                                     {allEvents.map((row) => (
-                                        <TableRow
+                                        <StyledTableRow
                                             key={row._id}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell align="left">{row.name}</TableCell>
-                                            <TableCell align="left">{row.description}</TableCell>
-                                            <TableCell align="left">{row.venue}</TableCell>
-                                            <TableCell align="left">{formatDateAndTime(row.scoringType)}</TableCell>
-                                            <TableCell align="left">{formatDateAndTime(row.dateTime)}</TableCell>
-                                            <TableCell align="left">
+                                            <StyledTableCell align="left">{row.name}</StyledTableCell>
+                                            <StyledTableCell align="left">{row.description}</StyledTableCell>
+                                            <StyledTableCell align="left">{row.venue}</StyledTableCell>
+                                            <StyledTableCell align="left">{formatDateAndTime(row.scoringType)}</StyledTableCell>
+                                            <StyledTableCell align="left">{formatDateAndTime(row.dateTime)}</StyledTableCell>
+                                            <StyledTableCell align="left">
                                                 <input
                                                     type='checkbox'
                                                     className='form-control'
@@ -909,8 +918,8 @@ function ListOfEvents() {
                                                     name='isOnGoing'
                                                     checked={row.IsOnGoing}
                                                     readOnly />
-                                            </TableCell>
-                                            <TableCell>
+                                            </StyledTableCell>
+                                            <StyledTableCell>
                                                 {/* <Button id={row._id} name={row.name} variant="contained" onClick={(event) => { handleClick(event, cellValues); }} color="primary" sx={{ mr: .5, mt: .5 }}>
                                                     <VisibilityIcon />
                                                 </Button> */}
@@ -923,8 +932,8 @@ function ListOfEvents() {
                                                 <Button id={row._id} name={row.name} variant="contained" onClick={onClickDelete} color="error" sx={{ mr: .5, mt: .5 }}>
                                                     <DeleteIcon />
                                                 </Button>
-                                            </TableCell>
-                                        </TableRow>
+                                            </StyledTableCell>
+                                        </StyledTableRow>
                                     ))}
                                 </TableBody>
                             </Table>

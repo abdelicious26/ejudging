@@ -11,7 +11,7 @@ import ListItemText from '@mui/material/ListItemText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import PersonIcon from '@mui/icons-material/Person';
-import { TextField, Switch } from '@mui/material';
+import { TextField, Switch, Divider } from '@mui/material';
 import { blue } from '@mui/material/colors';
 
 import RatingTable from './RatingTable';
@@ -76,7 +76,7 @@ function EventDetail({ event, participants, criteria, judges }) {
                     defaultValue={selectedEvent.name}
                     InputProps={{
                         readOnly: true,
-                    }} fullWidth margin="dense" color="error"
+                    }} fullWidth margin="dense" color="primary"
                     variant='standard'
                 />
 
@@ -86,7 +86,7 @@ function EventDetail({ event, participants, criteria, judges }) {
                     defaultValue={selectedEvent.description}
                     InputProps={{
                         readOnly: true,
-                    }} fullWidth margin="dense" color="error"
+                    }} fullWidth margin="dense" color="primary"
                     variant='standard'
                 />
 
@@ -96,7 +96,16 @@ function EventDetail({ event, participants, criteria, judges }) {
                     defaultValue={selectedEvent.venue}
                     InputProps={{
                         readOnly: true,
-                    }} fullWidth margin="dense" color="error"
+                    }} fullWidth margin="dense" color="primary"
+                    variant='standard'
+                />
+                <TextField
+                    id="outlined-read-only-input"
+                    label="Scoring Type"
+                    defaultValue={selectedEvent.scoringType}
+                    InputProps={{
+                        readOnly: true,
+                    }} fullWidth margin="dense" color="primary"
                     variant='standard'
                 />
 
@@ -106,20 +115,12 @@ function EventDetail({ event, participants, criteria, judges }) {
                     defaultValue={formatDateAndTime(selectedEvent.dateTime)}
                     InputProps={{
                         readOnly: true,
-                    }} fullWidth margin="dense" color="error"
+                    }} fullWidth margin="dense" color="primary"
                     variant='standard'
                 />
-                <div>
-                    Active?
-                    <Switch
-                        checked={selectedEvent.IsOnGoing}
-                        inputProps={{ 'aria-label': 'controlled' }}
-                        name='IsOnGoing'
-                        readOnly
-                        color="error"
-                    />
-                </div>
             </section>
+            <br />
+            <Divider />
             <section>
                 {showScoringComponent()}
             </section>

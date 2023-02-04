@@ -224,3 +224,7 @@ h3 {
   left: auto !important; */
   position: static;
 }
+
+.signatureName {
+  text-decoration-line: overline;
+}

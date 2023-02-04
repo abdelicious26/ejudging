@@ -93,7 +93,7 @@ function Login() {
                             />
                         </div>
                         <div className='form-group'>
-                            <Button variant="contained" color="error" type='submit' fullWidth='true'>
+                            <Button variant="contained" color="primary" type='submit' fullWidth='true'>
                                 Submit
                             </Button>
                         </div>

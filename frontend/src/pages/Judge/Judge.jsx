@@ -76,7 +76,8 @@ function Judge() {
                 `${process.env.REACT_APP_BACKEND_API}judge/`,
                 { headers: { "Authorization": `Bearer ${token}` } }).then(response => {
                     if (!response) setAllEvents("No Event Records")
-                    setAllEvents(response.data);
+                    let _activeEvents = response.data.filter(res => res.IsOnGoing === true)
+                    setAllEvents(_activeEvents);
                 })
             axios.get(
                 `${process.env.REACT_APP_BACKEND_API}users/`,
@@ -186,7 +187,7 @@ function Judge() {
                                     <p><CircleIcon color="success" /> Active</p>
                                 ) : (
 
-                                    <p><CircleIcon color="error" /> Inactive</p>
+                                    <p><CircleIcon color="primary" /> Inactive</p>
                                 )}
                                 <TextField
                                     label="Event Name"
@@ -197,7 +198,7 @@ function Judge() {
                                     // fullWidth 
                                     variant="outlined"
                                     size="medium"
-                                    color="error"
+                                    color="primary"
                                     margin="dense"
                                     sx={{ mb: 2 }}
                                 />
@@ -210,7 +211,7 @@ function Judge() {
                                     // fullWidth 
                                     variant="outlined"
                                     size="medium"
-                                    color="error"
+                                    color="primary"
                                     margin="dense"
                                     sx={{ mb: 2 }}
                                 />
@@ -224,7 +225,7 @@ function Judge() {
                                     // fullWidth 
                                     variant="outlined"
                                     size="medium"
-                                    color="error"
+                                    color="primary"
                                     margin="dense"
                                     sx={{ mb: 2 }}
                                 />
@@ -238,7 +239,7 @@ function Judge() {
                                     // fullWidth 
                                     variant="outlined"
                                     size="medium"
-                                    color="error"
+                                    color="primary"
                                     margin="dense"
                                     sx={{ mb: 2 }}
                                 />
@@ -252,11 +253,10 @@ function Judge() {
                                     // fullWidth 
                                     variant="outlined"
                                     size="medium"
-                                    color="error"
+                                    color="primary"
                                     margin="dense"
                                     sx={{ mb: 2 }}
                                 />
-
 
                                 {eventRecord.IsOnGoing ? (
                                     <Button sx={{ mt: 1 }} id={eventRecord._id} variant="contained" size="large"

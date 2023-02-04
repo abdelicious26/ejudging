@@ -12,7 +12,7 @@ import { Divider } from '@mui/material';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
-        backgroundColor: theme.palette.error.dark,
+        backgroundColor: '#1769aa',
         color: theme.palette.common.white,
         fontWeight: 'bold',
         fontSize: 16,
@@ -25,7 +25,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: '#c8e4fb',
     },
     // hide last border
     '&:last-child td, &:last-child th': {
@@ -36,7 +36,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 const StyledTableCellPerJudge = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
-        backgroundColor: theme.palette.warning.main,
+        backgroundColor: '#2196f3',
         color: theme.palette.common.white,
         fontWeight: 'bold',
         fontSize: 16,
@@ -57,6 +57,7 @@ function EventResultRanking({ selectedEventFromParent, eventScoresFromParent, al
     const [eventCriteria, setEventCriteria] = useState([]);
     const [eventResult, setEventResult] = useState([]);
     const [participantRanking, setParticipantRanking] = useState([]);
+    const [rankPerCriteria, setRankPerCriteria] = useState([]);
 
     //@USE EFFECT
     useEffect(() => {
@@ -81,9 +82,64 @@ function EventResultRanking({ selectedEventFromParent, eventScoresFromParent, al
             const found = allJudge.find(element => element._id === response.userId);
             JudgeWithName.push(found)
         });
-        // setSelectedJudge(JudgeWithName)
 
         let AllEventScore = eventScoresFromParent;
+
+        //@GET RANK PER CRITERIA
+        let _RankPerCriteria = CriteriaWithName.map(_criteria => {
+            let Participants = ParticipantsWithName.map(_participant => {
+                const Judges = JudgeWithName.map(_judge => {
+                    const judgeScore = AllEventScore.find(_judgeScore => _judgeScore.judge === _judge._id && _judgeScore.criteria === _criteria._id && _judgeScore.participant === _participant._id);
+                    let _tempJudge = _judge;
+                    _tempJudge.rank = judgeScore?.score;
+                    return { ..._tempJudge }
+                })
+                let _totalPoints = 0;
+                Judges.forEach(res => {
+                    _totalPoints += res.rank ? res.rank : 0;
+                })
+                return { ..._participant, judge: Judges, totalPoints: _totalPoints }
+            })
+            Participants = Participants.sort((a, b) => parseFloat(a.totalPoints) - parseFloat(b.totalPoints));
+            return { ..._criteria, participant: Participants };
+        })
+
+        setRankPerCriteria(_RankPerCriteria);
+
+        let _tempRankPerCriteria = _RankPerCriteria.map(_criteria => {
+            let ParticipantPoints = _criteria.participant.sort((a, b) => parseFloat(a.totalPoints) - parseFloat(b.totalPoints));
+            let _RankPoints = ParticipantPoints.map(score => {
+                return score.totalPoints;
+            })
+            _RankPoints = [...new Set(_RankPoints)];
+            _RankPoints.sort(function (a, b) { return a - b });
+            let rankCount = 1;
+            let rankPerParticipant = [];
+            _RankPoints.forEach(row => {
+                let _participants = _criteria.participant.filter(_participant => _participant.totalPoints === row);
+                let rank;
+                if (_participants.length == 1) {
+                    rank = rankCount;
+                    rankCount += _participants.length;
+                }
+                else if (_participants.length > 1) {
+                    let tempRankCountOld = rankCount;
+                    rankCount += _participants.length;
+                    rank = (rankCount - 1 + tempRankCountOld) / _participants.length;
+                }
+                _participants.forEach(participant => {
+                    let participantRank = participant;
+                    participantRank.finalRank = parseFloat(rank.toFixed(2));
+                    rankPerParticipant.push(participantRank);
+                })
+            })
+            return { ..._criteria, participant: rankPerParticipant };
+        })
+        console.log('_tempRankPerCriteria', _tempRankPerCriteria);
+
+
+
+        //@GET OVERALL RANK
         let FinalRankingTable = JudgeWithName.map(_judge => {
             let Participants = ParticipantsWithName.map(_participant => {
                 const Criterias = CriteriaWithName.map(_criteria => {
@@ -101,29 +157,23 @@ function EventResultRanking({ selectedEventFromParent, eventScoresFromParent, al
             Participants = Participants.sort((a, b) => parseFloat(a.totalPoints) - parseFloat(b.totalPoints));
             return { ..._judge, participant: Participants };
         })
-        console.log('FinalRankingTable', FinalRankingTable);
         setEventResult(FinalRankingTable);
+
         let ParticipantFinalRank = ParticipantsWithName.map(_participant => {
             let sumRank = 0;
             const scores = AllEventScore.filter(_judgeScore => _judgeScore.participant === _participant._id);
             scores.forEach(_score => {
                 sumRank += parseInt(_score.score);
             });
-            console.log(_participant.name, sumRank);
             return { ..._participant, totalRankPoints: sumRank }
         })
 
-
         ParticipantFinalRank = ParticipantFinalRank.sort((a, b) => parseFloat(a.totalRankPoints) - parseFloat(b.totalRankPoints));
-
-
-
         let _RankPoints = ParticipantFinalRank.map(score => {
             return score.totalRankPoints;
         })
         _RankPoints = [...new Set(_RankPoints)];
         _RankPoints.sort(function (a, b) { return a - b });
-
         let rankCount = 1;
         let rankPerParticipant = [];
         _RankPoints.forEach(row => {
@@ -145,12 +195,14 @@ function EventResultRanking({ selectedEventFromParent, eventScoresFromParent, al
             })
         })
         setParticipantRanking(rankPerParticipant);
-        console.log('eventResult', eventResult)
     }, [])
 
     return (
         //@SHOW UI
         <>
+            <Divider />
+            <br />
+            <h3>Overall:</h3>
             <TableContainer component={Paper} sx={{ my: 1 }}>
                 <Table sx={{ minWidth: 650 }} aria-label="customized table">
                     <TableHead>
@@ -173,6 +225,43 @@ function EventResultRanking({ selectedEventFromParent, eventScoresFromParent, al
             </TableContainer>
 
             <Divider />
+            <br />
+            <h3>Rank Per Criteria:</h3>
+            {rankPerCriteria.map((criteria) => (
+                // <h4></h4>
+                <div key={criteria._id}>
+                    {/* <h4> Judge: {judge.firstName} {judge.lastName}</h4> */}
+                    <p id="child-modal-title">Criteria {criteria.orderNumber}: <b>{criteria.name}</b></p>
+                    < TableContainer component={Paper} sx={{ mb: 3 }}>
+                        <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+                            <TableHead>
+                                <StyledTableRow>
+                                    <StyledTableCell>Participant Name</StyledTableCell>
+                                    <StyledTableCell>Total Points</StyledTableCell>
+                                    <StyledTableCell>Rank</StyledTableCell>
+                                </StyledTableRow>
+                            </TableHead>
+                            <TableBody>
+                                {criteria.participant.map((participant) => (
+                                    <StyledTableRow
+                                        key={participant._id}
+                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                    >
+                                        <StyledTableCell>{participant.name}</StyledTableCell>
+                                        <StyledTableCell>{participant.totalPoints}</StyledTableCell>
+                                        <StyledTableCell>{participant.finalRank}</StyledTableCell>
+                                    </StyledTableRow>
+
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                    <Divider />
+                </div>
+            ))}
+
+            <Divider />
+            <br />
             <h3>Score per Judge:</h3>
 
             {eventResult.map((judge) => (

@@ -12,13 +12,13 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -26,6 +26,29 @@ const Item = styled(Paper)(({ theme }) => ({
     padding: theme.spacing(1),
     textAlign: 'center',
     color: theme.palette.text.secondary,
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    '&:nth-of-type(odd)': {
+        backgroundColor: '#c8e4fb',
+    },
+    // hide last border
+    '&:last-child td, &:last-child th': {
+        border: 0,
+    },
+}));
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+    [`&.${tableCellClasses.head}`]: {
+        backgroundColor: '#1769aa',
+        color: theme.palette.common.white,
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    [`&.${tableCellClasses.body}`]: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
 }));
 
 
@@ -309,26 +332,26 @@ function MaintenanceUser() {
                             <TableContainer component={Paper}>
                                 <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
                                     <TableHead>
-                                        <TableRow>
-                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>First Name</TableCell>
-                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Last Name</TableCell>
-                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Username</TableCell>
-                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>User Type</TableCell>
-                                            <TableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Active?</TableCell>
-                                            <TableCell align="center" sx={{ fontSize: 18, fontWeight: 'bold' }}>Actions</TableCell>
-                                        </TableRow>
+                                        <StyledTableRow>
+                                            <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>First Name</StyledTableCell>
+                                            <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Last Name</StyledTableCell>
+                                            <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Username</StyledTableCell>
+                                            <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>User Type</StyledTableCell>
+                                            <StyledTableCell align="left" sx={{ fontSize: 18, fontWeight: 'bold' }}>Active?</StyledTableCell>
+                                            <StyledTableCell align="center" sx={{ fontSize: 18, fontWeight: 'bold' }}>Actions</StyledTableCell>
+                                        </StyledTableRow>
                                     </TableHead>
                                     <TableBody>
                                         {allUsers.map((row) => (
-                                            <TableRow
+                                            <StyledTableRow
                                                 key={row._id}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                <TableCell align="left">{row.firstName}</TableCell>
-                                                <TableCell align="left">{row.lastName}</TableCell>
-                                                <TableCell align="left">{row.username}</TableCell>
-                                                <TableCell align="left">{row.recordType}</TableCell>
-                                                <TableCell align="left">
+                                                <StyledTableCell align="left">{row.firstName}</StyledTableCell>
+                                                <StyledTableCell align="left">{row.lastName}</StyledTableCell>
+                                                <StyledTableCell align="left">{row.username}</StyledTableCell>
+                                                <StyledTableCell align="left">{row.recordType}</StyledTableCell>
+                                                <StyledTableCell align="left">
                                                     <input
                                                         type='checkbox'
                                                         className='form-control'
@@ -337,11 +360,11 @@ function MaintenanceUser() {
                                                         placeholder='Enter your username'
                                                         checked={row.isActive}
                                                         readOnly />
-                                                </TableCell>
-                                                <TableCell align="center">
+                                                </StyledTableCell>
+                                                <StyledTableCell align="center">
                                                     <Button variant="contained" color="success" onClick={openRecord} id={row._id} name={row.name} startIcon={<EditIcon />}> Edit</Button>
-                                                </TableCell>
-                                            </TableRow>
+                                                </StyledTableCell>
+                                            </StyledTableRow>
                                         ))}
                                     </TableBody>
                                 </Table>

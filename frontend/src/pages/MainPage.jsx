@@ -135,9 +135,9 @@ function MainPage(props) {
                 <ListItem disablePadding>
                     <ListItemButton onClick={onLogout}>
                         <ListItemIcon>
-                            <ExitToAppIcon />
+                            <ExitToAppIcon color='error' />
                         </ListItemIcon>
-                        <ListItemText> Logout</ListItemText>
+                        <ListItemText sx={{ color: 'error.main' }}> Logout</ListItemText>
                     </ListItemButton>
                 </ListItem>
             </List>
@@ -169,9 +169,9 @@ function MainPage(props) {
                 <ListItem disablePadding>
                     <ListItemButton onClick={onLogout}>
                         <ListItemIcon>
-                            <ExitToAppIcon />
+                            <ExitToAppIcon color='error' />
                         </ListItemIcon>
-                        <ListItemText> Logout</ListItemText>
+                        <ListItemText sx={{ color: 'error.main' }}> Logout</ListItemText>
                     </ListItemButton>
                 </ListItem>
             </List>
@@ -186,7 +186,7 @@ function MainPage(props) {
                 <CssBaseline />
                 <AppBar
                     position="fixed"
-                    style={{ background: '#DC143C' }}
+                    style={{ background: '#1769aa' }}
                     sx={{
                         width: { sm: `calc(100% - ${drawerWidth}px)` },
                         ml: { sm: `${drawerWidth}px` },
@@ -203,7 +203,7 @@ function MainPage(props) {
                             <MenuIcon />
                         </IconButton>
                         <Typography variant="h6" noWrap component="div">
-                            E-Judging: a Tabulation System of Saint Francis of Assisi College Alabang
+                            E-Judging: A Tabulation System of Saint Francis of Assisi College Alabang
                         </Typography>
                     </Toolbar>
                 </AppBar>
@@ -269,7 +269,7 @@ function MainPage(props) {
                 <CssBaseline />
                 <AppBar
                     position="fixed"
-                    style={{ background: '#DC143C' }}
+                    style={{ background: '#1769aa' }}
                     sx={{
                         width: { sm: `calc(100% - ${drawerWidth}px)` },
                         ml: { sm: `${drawerWidth}px` },
@@ -286,7 +286,7 @@ function MainPage(props) {
                             <MenuIcon />
                         </IconButton>
                         <Typography variant="h6" noWrap component="div">
-                            E-Judging: a Tabulation System of Saint Francis of Assisi College Alabang
+                            E-Judging: A Tabulation System of Saint Francis of Assisi College Alabang
                         </Typography>
                     </Toolbar>
                 </AppBar>
